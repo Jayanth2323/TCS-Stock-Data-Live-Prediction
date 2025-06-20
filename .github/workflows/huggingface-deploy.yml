@@ -1,33 +1,33 @@
-name: Deploy to Hugging Face Space
+name: Deploy to Hugging Face
 
 on:
   push:
     branches:
-      - main  # or your branch name
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install DVC (for Hugging Face)
-        run: pip install -U dvc[gs]
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-      - name: Install Hugging Face Hub
+      - name: Install dependencies
         run: pip install huggingface_hub
 
-      - name: Push to Hugging Face Space
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      - name: Upload to Hugging Face Space
         run: |
-          git config --global user.email "your-email@example.com"
-          git config --global user.name "YourName"
-          
-          # Login to HF
-          huggingface-cli login --token $HF_TOKEN
-
-          # Upload to your HF Space repo
-          git remote add space https://huggingface.co/spaces/JaKe7389/TCS_Stock_Live_Prediction
-          git push space main --force
+          from huggingface_hub import upload_folder
+          upload_folder(
+            folder_path=".",
+            repo_id="Jayanth2323/TCS_Stock_Predictor",
+            repo_type="space",
+            token="${{ secrets.HF_TOKEN }}"
+          )
+        shell: python
