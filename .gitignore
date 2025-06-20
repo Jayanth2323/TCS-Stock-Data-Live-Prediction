@@ -6,4 +6,5 @@ __pycache__/
 .vscode/
 .DS_Store
 .gradio
+TCS_Stock_Live_Prediction/
 venv/
