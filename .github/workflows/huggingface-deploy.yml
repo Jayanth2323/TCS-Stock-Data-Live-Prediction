@@ -22,12 +22,8 @@ jobs:
         run: pip install huggingface_hub
 
       - name: Upload to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          from huggingface_hub import upload_folder
-          upload_folder(
-            folder_path=".",
-            repo_id="JaKe7389/TCS_Stock_Live_Prediction",
-            repo_type="space",
-            token="${{ secrets.HF_TOKEN }}"
-          )
-        shell: python
+          python -c "from huggingface_hub import upload_folder; \
+          upload_folder(folder_path='.', repo_id='JaKe7389/TCS_Stock_Live_Prediction', repo_type='space', token='${HF_TOKEN}')"
