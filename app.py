@@ -8,8 +8,8 @@ import pandas as pd
 model = joblib.load("model/TCS_Stock_Predictor.pkl")
 
 
-def predict(high, low):
-    data = pd.DataFrame([[high, low]], columns=["Open", "High", "Low"])
+def predict(open, high, low):
+    data = pd.DataFrame([[open, high, low]], columns=["Open", "High", "Low"])
     prediction = model.predict(data)
     return f"Predicted Close Price: {prediction[0]:.2f}"
 
