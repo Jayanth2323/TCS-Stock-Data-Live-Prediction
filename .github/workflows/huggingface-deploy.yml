@@ -26,7 +26,7 @@ jobs:
           from huggingface_hub import upload_folder
           upload_folder(
             folder_path=".",
-            repo_id="Jayanth2323/TCS_Stock_Predictor",
+            repo_id="Jayanth2323/TCS_Stock_Data_Live_Prediction",
             repo_type="space",
             token="${{ secrets.HF_TOKEN }}"
           )
