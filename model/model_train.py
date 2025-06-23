@@ -1,7 +1,9 @@
 # model/model_train.py
 import pandas as pd
 from sklearn.linear_model import LinearRegression
+from sklearn.pipeline import Pipeline
 import joblib
+import os
 
 # Load dataset
 data = pd.read_csv('./data/TCS_stock_history.csv')
@@ -21,18 +23,25 @@ data.dropna(inplace=True)
 # Features & Target
 feature_cols = [
     'Open', 'High', 'Low', 'Volume', 'Prev_Close', 'Day_of_Week', 'Month'
-    ]
+]
 X = data[feature_cols]
 y = data['Close']
 
 print(f"✅ Data prepared. Shape: {X.shape}")
 print(f"✅ Features used: {feature_cols}")
 
-# Model Training
-model = LinearRegression()
-model.fit(X, y)
+# Create a pipeline (even if only one step, useful for future expansion)
+pipeline = Pipeline([
+    ("regressor", LinearRegression())
+])
+
+# Train the pipeline
+pipeline.fit(X, y)
 print("✅ Model training completed.")
 
-# Save the model
-joblib.dump(model, './model/TCS_Stock_Predictor.pkl', protocol=4)
-print("✅ Model saved successfully to './model/TCS_Stock_Predictor.pkl'")
+# Ensure model directory exists
+os.makedirs("./model", exist_ok=True)
+
+# Save the full pipeline
+joblib.dump(pipeline, './model/TCS_Stock_Predictor.pkl', protocol=4)
+print("✅ Pipeline saved successfully to './model/TCS_Stock_Predictor.pkl'")
