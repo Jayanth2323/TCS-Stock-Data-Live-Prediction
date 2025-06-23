@@ -21,26 +21,15 @@ def predict(
         return "Model not loaded. Please check the server logs."
 
     try:
-        data = pd.DataFrame(
-            [[{
-                "Open": float(open_price),
-                "High": float(high_price),
-                "Low": float(low_price),
-                "Volume": float(volume),
-                "Prev_Close": float(prev_close),
-                "Day_of_Week": int(day_of_week),
-                "Month": int(month),
-                }]],
-            # columns=[
-            #     "Open",
-            #     "High",
-            #     "Low",
-            #     "Volume",
-            #     "Prev_Close",
-            #     "Day_of_Week",
-            #     "Month",
-            # ],
-        )
+        data = pd.DataFrame([{
+            "Open": float(open_price),
+            "High": float(high_price),
+            "Low": float(low_price),
+            "Volume": float(volume),
+            "Prev_Close": float(prev_close),
+            "Day_of_Week": int(day_of_week),
+            "Month": int(month),
+        }])
 
         prediction = model.predict(data)
         return f"📈 Predicted Close Price: ₹{prediction[0]:.2f}"
