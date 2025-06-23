@@ -44,7 +44,7 @@ def predict(
             ],
         )
 
-        prediction = model.predict(data.values)
+        prediction = model.predict(data)
         return f"📈 Predicted Close Price: ₹{prediction[0]:.2f}"
     except Exception as e:
         return f"❌ Prediction Error: {str(e)}"
