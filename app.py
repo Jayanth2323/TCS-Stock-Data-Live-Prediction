@@ -14,16 +14,13 @@ except Exception as e:
     print(f"❌ Error loading model: {e}")
 
 
-def predict(inputs):
+def predict(
+    open_price, high_price, low_price, volume, prev_close, day_of_week, month
+):
     if model is None:
         return "Model not loaded. Please check the server logs."
 
     try:
-        (
-            open_price,
-            high_price, low_price, volume, prev_close, day_of_week, month) = (
-            inputs
-        )
         data = pd.DataFrame(
             [
                 [
@@ -37,13 +34,13 @@ def predict(inputs):
                 ]
             ],
             columns=[
-                "Open",
-                "High",
-                "Low",
-                "Volume",
-                "Prev_Close",
-                "Day_of_Week",
-                "Month",
+                "open",
+                "high",
+                "low",
+                "volume",
+                "prev_close",
+                "day_of_week",
+                "month",
             ],
         )
 
@@ -73,5 +70,5 @@ iface = gr.Interface(
 )
 
 
-# if __name__ == "__main__":
-#     iface.launch(server_name="0.0.0.0", server_port=7860)
+if __name__ == "__main__":
+    iface.launch(server_name="", server_port=7860)
