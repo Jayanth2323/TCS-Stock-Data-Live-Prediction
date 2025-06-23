@@ -19,7 +19,9 @@ def predict(inputs):
         return "Model not loaded. Please check the server logs."
 
     try:
-        (open_price, high_price, low_price, volume, prev_close, day_of_week, month) = (
+        (
+            open_price,
+            high_price, low_price, volume, prev_close, day_of_week, month) = (
             inputs
         )
         data = pd.DataFrame(
@@ -71,5 +73,5 @@ iface = gr.Interface(
 )
 
 
-if __name__ == "__main__":
-    iface.launch(server_name="0.0.0.0", server_port=7860)
+# if __name__ == "__main__":
+#     iface.launch(server_name="0.0.0.0", server_port=7860)
