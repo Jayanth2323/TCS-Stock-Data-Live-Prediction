@@ -22,26 +22,24 @@ def predict(
 
     try:
         data = pd.DataFrame(
-            [
-                [
-                    float(open_price),
-                    float(high_price),
-                    float(low_price),
-                    float(volume),
-                    float(prev_close),
-                    int(day_of_week),
-                    int(month),
-                ]
-            ],
-            columns=[
-                "Open",
-                "High",
-                "Low",
-                "Volume",
-                "Prev_Close",
-                "Day_of_Week",
-                "Month",
-            ],
+            [[{
+                "Open": float(open_price),
+                "High": float(high_price),
+                "Low": float(low_price),
+                "Volume": float(volume),
+                "Prev_Close": float(prev_close),
+                "Day_of_Week": int(day_of_week),
+                "Month": int(month),
+                }]],
+            # columns=[
+            #     "Open",
+            #     "High",
+            #     "Low",
+            #     "Volume",
+            #     "Prev_Close",
+            #     "Day_of_Week",
+            #     "Month",
+            # ],
         )
 
         prediction = model.predict(data)
