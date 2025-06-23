@@ -34,13 +34,13 @@ def predict(
                 ]
             ],
             columns=[
-                "open",
-                "high",
-                "low",
-                "volume",
-                "prev_close",
-                "day_of_week",
-                "month",
+                "Open",
+                "High",
+                "Low",
+                "Volume",
+                "Prev_Close",
+                "Day_of_Week",
+                "Month",
             ],
         )
 
