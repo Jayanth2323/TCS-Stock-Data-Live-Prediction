@@ -65,8 +65,8 @@ iface = gr.Interface(
     title="TCS Stock Close Price Predictor - Upgraded",
     description="""Enter Open, High, Low, Volume,
     Previous Close, Day of Week,
-    and Month to predict the TCS stock closing price.",
-    theme="default""",
+    and Month to predict the TCS stock closing price.""",
+    theme="default",
 )
 
 
