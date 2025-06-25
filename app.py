@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import joblib
 import io
+from PIL import Image
 
 # Load model
 MODEL_PATH = "model/TCS_Stock_Predictor.pkl"
@@ -17,32 +18,27 @@ except Exception as e:
 
 
 # Prediction function
-def predict(
-    open_price, high_price, low_price, volume, prev_close, day_of_week, month
-):
+def predict(open_price,
+            high_price, low_price, volume, prev_close, day_of_week, month):
     if model is None:
         return "Model not loaded. Please check server logs."
     try:
-        data = pd.DataFrame(
-            [
-                {
-                    "Open": float(open_price),
-                    "High": float(high_price),
-                    "Low": float(low_price),
-                    "Volume": float(volume),
-                    "Prev_Close": float(prev_close),
-                    "Day_of_Week": int(day_of_week),
-                    "Month": int(month),
-                }
-            ]
-        )
+        data = pd.DataFrame([{
+            "Open": float(open_price),
+            "High": float(high_price),
+            "Low": float(low_price),
+            "Volume": float(volume),
+            "Prev_Close": float(prev_close),
+            "Day_of_Week": int(day_of_week),
+            "Month": int(month),
+        }])
         prediction = model.predict(data)
         return f"📈 Predicted Close Price: ₹{prediction[0]:.2f}"
     except Exception as e:
         return f"❌ Prediction Error: {str(e)}"
 
 
-# Visualization function
+# Visualization function returning PIL image
 def show_visualizations():
     df = pd.read_csv(DATA_PATH)
     df["Date"] = pd.to_datetime(df["Date"])
@@ -52,7 +48,6 @@ def show_visualizations():
 
     _, axs = plt.subplots(2, 1, figsize=(12, 10))
 
-    # Plot 1: Close price
     axs[0].plot(df["Date"], df["Close"], label="Close Price", color="blue")
     axs[0].plot(df["Date"], df["MA50"], label="MA 50", color="orange")
     axs[0].plot(df["Date"], df["MA200"], label="MA 200", color="green")
@@ -61,7 +56,6 @@ def show_visualizations():
     axs[0].set_xlabel("Date")
     axs[0].set_ylabel("Price")
 
-    # Plot 2: Volume
     axs[1].plot(df["Date"], df["Volume"], label="Volume", color="purple")
     axs[1].set_title("TCS Trading Volume Over Time")
     axs[1].set_xlabel("Date")
@@ -72,14 +66,18 @@ def show_visualizations():
     buf = io.BytesIO()
     plt.savefig(buf, format="png")
     buf.seek(0)
-    return buf
+    image = Image.open(buf)
+    plt.close()
+    return image
 
 
-# Gradio Tabs
+# Gradio App UI
 with gr.Blocks() as demo:
     with gr.Tab("📊 Visual Insights"):
-        gr.Markdown("## 📈 Stock Price Trends and Volume")
-        gr.Image(show_visualizations)
+        gr.Markdown("### 📈 TCS Stock Trends with Moving Averages and Volume")
+        vis_output = gr.Image(label="Generated Insights")
+        vis_btn = gr.Button("📊 Generate Visuals")
+        vis_btn.click(fn=show_visualizations, inputs=[], outputs=vis_output)
 
     with gr.Tab("🤖 Predict Close Price"):
         with gr.Row():
@@ -97,12 +95,8 @@ with gr.Blocks() as demo:
             inputs=[
                 open_price,
                 high_price,
-                low_price,
-                volume,
-                prev_close,
-                day_of_week,
-                month,
-            ],
+                low_price, volume, prev_close, day_of_week, month
+                ],
             outputs=output,
         )
 
