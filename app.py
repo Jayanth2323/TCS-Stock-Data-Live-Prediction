@@ -156,11 +156,11 @@ with gr.Blocks() as demo:
             outputs=output,
         )
 
-    with gr.Tab("📊 Visual Insights"):
-        gr.Markdown("### 📈 Stock Trend + Moving Averages + Volume")
-        vis_output = gr.Image(label="Stock Chart")
-        vis_btn = gr.Button("📊 Generate Visuals")
-        vis_btn.click(fn=show_visual_insights, inputs=[], outputs=vis_output)
+    # with gr.Tab("📊 Visual Insights"):
+    #     gr.Markdown("### 📈 Stock Trend + Moving Averages + Volume")
+    #     vis_output = gr.Image(label="Stock Chart")
+    #     vis_btn = gr.Button("📊 Generate Visuals")
+    #     vis_btn.click(fn=show_visual_insights, inputs=[], outputs=vis_output)
 
     with gr.Tab("📉 Prediction Accuracy"):
         gr.Markdown("### 🤝 Actual vs Predicted Close Price")
