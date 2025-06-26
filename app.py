@@ -91,6 +91,11 @@ def show_prediction_plot():
     df["Date"] = pd.to_datetime(df["Date"])
     df = df.sort_values("Date")
 
+    # Add missing features
+    df["Prev_Close"] = df["Close"].shift(1)
+    df["Day_of_Week"] = df["Date"].dt.dayofweek
+    df["Month"] = df["Date"].dt.month
+
     features = [
         "Open", "High", "Low", "Volume", "Prev_Close", "Day_of_Week", "Month"]
     df = df.dropna(subset=features + ["Close"])
@@ -159,8 +164,8 @@ with gr.Blocks() as demo:
 
     with gr.Tab("📉 Prediction Accuracy"):
         gr.Markdown("### 🤝 Actual vs Predicted Close Price")
-        pred_output = gr.Image(label="Prediction Plot")
+        output = gr.Image(label="Prediction Plot")
         pred_btn = gr.Button("📉 Compare Predictions")
-        pred_btn.click(fn=show_prediction_plot, inputs=[], outputs=pred_output)
+        pred_btn.click(fn=show_prediction_plot, inputs=[], outputs=output)
 if __name__ == "__main__":
     demo.launch()
