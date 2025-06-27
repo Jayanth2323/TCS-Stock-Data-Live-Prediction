@@ -111,7 +111,7 @@ def plot_actual_predicted():
     fig, ax = plt.subplots(figsize=(10, 4))
     ax.plot(df["Date"], y_true, label="Actual")
     ax.plot(df["Date"], y_pred, label="Pred", alpha=0.7)
-    ax.set_title(f"Actual vs Predicted 🧮 (MSE={mse:.2f}, R²={r2:.2f})")
+    ax.set_title(f"Actual vs Predicted Prices (MSE={mse:.2f}, R²={r2:.2f})")
     ax.legend()
     return fig_to_pil(fig)
 
