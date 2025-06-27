@@ -71,7 +71,8 @@ def plot_combined_analysis(return_pdf=False):
     df["Month"] = df["Date"].dt.month
     df.dropna(inplace=True)
 
-    feats = ["Open", "High", "Low", "Volume", "Prev_Close", "Day_of_Week", "Month"]
+    feats = [
+        "Open", "High", "Low", "Volume", "Prev_Close", "Day_of_Week", "Month"]
     X = df[feats]
     y_true = df["Close"]
     y_pred = lin_model.predict(X) if lin_model else [0] * len(X)
@@ -94,7 +95,12 @@ def plot_combined_analysis(return_pdf=False):
     ax4 = fig.add_subplot(gs[1, 1])
     ax5 = fig.add_subplot(gs[2, 0])
     ax6 = fig.add_subplot(gs[2, 1])
-    ax7 = fig.add_subplot(gs[3, :])
+    ax7 = fig.add_subplot(gs[3, :], frame_on=False)
+    ax7.bar([0], [lstm_pred], color="orange")
+    ax7.set_xticks([0])
+    ax7.set_xticklabels(["LSTM Forecast"])
+    ax7.set_title("LSTM Forecast for Next Closing Price")
+    ax7.set_ylabel("Price (₹)")
 
     ax1.plot(df["Date"], df["Close"], label="Close")
     ax1.plot(df["Date"], df["MA50"], label="MA50")
