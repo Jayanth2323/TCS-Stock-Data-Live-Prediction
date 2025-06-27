@@ -8,7 +8,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 import tensorflow as tf
 import os
 
-# Force TensorFlow to use CPU only
+# Force TensorFlow to CPU-only to avoid cuBLAS errors
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 # --- Paths ---
@@ -17,10 +17,7 @@ LSTM_MODEL_PATH = "model/tcs_lstm_model.keras"
 SCALER_PATH = "model/tcs_lstm_scaler.pkl"
 DATA_PATH = "data/TCS_stock_history.csv"
 
-# --- Model Load ---
-print("Model Exists?", os.path.exists(LSTM_MODEL_PATH))
-print("Scaler Exists?", os.path.exists(SCALER_PATH))
-
+# --- Load Models ---
 try:
     lin_model = joblib.load(LINEAR_MODEL_PATH)
     print(f"✅ Linear model loaded from {LINEAR_MODEL_PATH}")
@@ -54,11 +51,16 @@ def fig_to_pil(fig):
     return img
 
 
-# --- Combined Analytics Plot ---
-def plot_combined_analysis():
-    df = load_df()
+def fig_to_pdf_bytes(fig):
+    buf = io.BytesIO()
+    fig.savefig(buf, format="pdf", bbox_inches="tight")
+    buf.seek(0)
+    return buf.read()
 
-    # Preprocessing
+
+# --- Combined Analysis Plot ---
+def plot_combined_analysis(return_pdf=False):
+    df = load_df()
     df["MA50"] = df["Close"].rolling(50).mean()
     df["MA200"] = df["Close"].rolling(200).mean()
     df["ShortMA"] = df["Close"].rolling(20).mean()
@@ -69,64 +71,69 @@ def plot_combined_analysis():
     df["Month"] = df["Date"].dt.month
     df.dropna(inplace=True)
 
-    # Linear Model Predictions
-    feats = [
-        "Open", "High", "Low", "Volume", "Prev_Close", "Day_of_Week", "Month"]
+    feats = ["Open", "High", "Low", "Volume", "Prev_Close", "Day_of_Week", "Month"]
     X = df[feats]
     y_true = df["Close"]
     y_pred = lin_model.predict(X) if lin_model else [0] * len(X)
     mse = mean_squared_error(y_true, y_pred)
     r2 = r2_score(y_true, y_pred)
 
-    # LSTM Forecast
     lstm_pred = 0
     if lstm_model and scaler:
         data = scaler.transform(df[["Close"]])
         seq = data[-60:].reshape(1, 60, 1)
         lstm_pred = lstm_model.predict(seq)[0, 0]
 
-    # Combined Figure
-    fig, axs = plt.subplots(3, 2, figsize=(16, 12))
+    fig = plt.figure(figsize=(16, 14))
     fig.tight_layout(pad=4)
+    gs = fig.add_gridspec(4, 2)
 
-    # 1. Trend + MA
-    axs[0, 0].plot(df["Date"], df["Close"], label="Close")
-    axs[0, 0].plot(df["Date"], df["MA50"], label="MA50")
-    axs[0, 0].plot(df["Date"], df["MA200"], label="MA200")
-    axs[0, 0].set_title("Close Price & Moving Averages")
-    axs[0, 0].legend()
+    ax1 = fig.add_subplot(gs[0, 0])
+    ax2 = fig.add_subplot(gs[0, 1])
+    ax3 = fig.add_subplot(gs[1, 0])
+    ax4 = fig.add_subplot(gs[1, 1])
+    ax5 = fig.add_subplot(gs[2, 0])
+    ax6 = fig.add_subplot(gs[2, 1])
+    ax7 = fig.add_subplot(gs[3, :])
 
-    # 2. Volume
-    axs[0, 1].plot(df["Date"], df["Volume"], label="Volume", color="purple")
-    axs[0, 1].set_title("Trading Volume")
-    axs[0, 1].legend()
+    ax1.plot(df["Date"], df["Close"], label="Close")
+    ax1.plot(df["Date"], df["MA50"], label="MA50")
+    ax1.plot(df["Date"], df["MA200"], label="MA200")
+    ax1.set_title("Close Price & Moving Averages")
+    ax1.legend()
 
-    # 3. Dividends & Splits
-    axs[1, 0].plot(df["Date"], df.get("Dividends", 0), label="Dividends")
-    axs[1, 0].plot(df["Date"], df.get("Stock Splits", 0), label="Stock Splits")
-    axs[1, 0].set_title("Dividends and Stock Splits")
-    axs[1, 0].legend()
+    ax2.plot(df["Date"], df["Volume"], label="Volume", color="purple")
+    ax2.set_title("Trading Volume")
+    ax2.legend()
 
-    # 4. MA Crossover
-    axs[1, 1].plot(df["Date"], df["Close"], label="Close")
-    axs[1, 1].plot(df["Date"], df["ShortMA"], label="20-day MA")
-    axs[1, 1].plot(df["Date"], df["LongMA"], label="50-day MA")
-    axs[1, 1].set_title("MA Crossover")
-    axs[1, 1].legend()
+    ax3.plot(df["Date"], df.get("Dividends", 0), label="Dividends")
+    ax3.plot(df["Date"], df.get("Stock Splits", 0), label="Stock Splits")
+    ax3.set_title("Dividends and Stock Splits")
+    ax3.legend()
 
-    # 5. Daily % Change Histogram
-    axs[2, 0].hist(df["DailyChange"].dropna(), bins=50, color="teal")
-    axs[2, 0].set_title("Daily % Change")
+    ax4.plot(df["Date"], df["Close"], label="Close")
+    ax4.plot(df["Date"], df["ShortMA"], label="20-day MA")
+    ax4.plot(df["Date"], df["LongMA"], label="50-day MA")
+    ax4.set_title("MA Crossover")
+    ax4.legend()
 
-    # 6. Actual vs Prediction + LSTM
-    axs[2, 1].plot(df["Date"], y_true, label="Actual")
-    axs[2, 1].plot(df["Date"], y_pred, label="Linear Pred", alpha=0.7)
-    axs[2, 1].bar(
-        ["LSTM Next"], [lstm_pred], color="orange", label="LSTM Forecast")
-    axs[2, 1].set_title(f"Model Forecasts (MSE={mse:.2f}, R²={r2:.2f})")
-    axs[2, 1].legend()
+    ax5.hist(df["DailyChange"].dropna(), bins=50, color="teal")
+    ax5.set_title("Daily % Change")
 
-    return fig_to_pil(fig)
+    ax6.plot(df["Date"], y_true, label="Actual")
+    ax6.plot(df["Date"], y_pred, label="Linear Pred", alpha=0.7)
+    ax6.set_title(f"Linear Model (MSE={mse:.2f}, R²={r2:.2f})")
+    ax6.legend()
+
+    ax7.bar(["LSTM Forecast"], [lstm_pred], color="orange")
+    ax7.set_title("LSTM Forecast for Next Closing Price")
+    ax7.set_ylabel("Price (₹)")
+
+    return fig_to_pdf_bytes(fig) if return_pdf else fig_to_pil(fig)
+
+
+def export_combined_pdf():
+    return ("tcs_stock_analysis.pdf", plot_combined_analysis(return_pdf=True))
 
 
 # --- Prediction UI ---
@@ -154,7 +161,11 @@ def predict(open_p, high_p, low_p, volume, prev_close, day_wk, month):
 with gr.Blocks() as demo:
     with gr.Tabs():
         with gr.TabItem("📊 All-in-One Analysis"):
-            gr.Image(plot_combined_analysis)
+            img = gr.Image(plot_combined_analysis)
+            pdf_btn = gr.Button("⬇️ Download PDF Report")
+            pdf_out = gr.File()
+            pdf_btn.click(fn=export_combined_pdf, outputs=pdf_out)
+
         with gr.TabItem("🔮 Predict Close Price"):
             open_price = gr.Number(label="Open Price (₹)")
             high_price = gr.Number(label="High Price (₹)")
@@ -178,7 +189,6 @@ with gr.Blocks() as demo:
                 ],
                 outputs=output,
             )
-
 
 # --- Launch App ---
 if __name__ == "__main__":
