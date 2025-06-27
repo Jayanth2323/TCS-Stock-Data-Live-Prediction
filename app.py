@@ -152,39 +152,46 @@ def predict(open_p, high_p, low_p, volume, prev_close, day_wk, month):
 
 
 # --- Gradio UI ---
-tabs = gr.Tabs()
-with tabs:
-    with gr.TabItem("Trend & Volume"):
-        gr.Image(plot_trend_volume)
-    with gr.TabItem("Dividends & Splits"):
-        gr.Image(plot_div_splits)
-    with gr.TabItem("MA Crossover"):
-        gr.Image(plot_ma_crossover)
-    with gr.TabItem("Daily Change"):
-        gr.Image(plot_daily_change)
-    with gr.TabItem("Linear Model Accuracy"):
-        gr.Image(plot_actual_predicted)
-    with gr.TabItem("LSTM Forecast"):
-        gr.Image(forecast_lstm)
-    with gr.Blocks() as demo:
-        with gr.TabItem("Predict Price"):
+with gr.Blocks() as demo:
+    with gr.Tabs():
+        with gr.TabItem("📊 Trend & Volume"):
+            gr.Image(plot_trend_volume)
+        with gr.TabItem("💰 Dividends & Splits"):
+            gr.Image(plot_div_splits)
+        with gr.TabItem("📈 MA Crossover"):
+            gr.Image(plot_ma_crossover)
+        with gr.TabItem("📉 Daily % Change"):
+            gr.Image(plot_daily_change)
+        with gr.TabItem("🤖 Linear Model Accuracy"):
+            gr.Image(plot_actual_predicted)
+        with gr.TabItem("🧠 LSTM Forecast"):
+            gr.Image(forecast_lstm)
+        with gr.TabItem("🔮 Predict Close Price"):
             with gr.Column():
                 with gr.Row():
                     open_price = gr.Number(label="Open Price (₹)")
                     high_price = gr.Number(label="High Price (₹)")
                     low_price = gr.Number(label="Low Price (₹)")
+                with gr.Row():
                     volume = gr.Number(label="Volume")
                     prev_close = gr.Number(label="Previous Close (₹)")
-                    day_of_week = gr.Number(label="Day of Week")
-                    month = gr.Number(label="Month")
+                with gr.Row():
+                    day_of_week = gr.Number(label="Day of Week (0=Mon)")
+                    month = gr.Number(label="Month (1-12)")
                 output = gr.Textbox(label="Predicted Close Price")
                 btn = gr.Button("🔮 Predict")
                 btn.click(predict, inputs=[
                     open_price,
                     high_price,
-                    low_price, volume, prev_close, day_of_week, month
+                    low_price,
+                    volume,
+                    prev_close,
+                    day_of_week,
+                    month
                     ], outputs=output)
 
 # Launch App
 if __name__ == "__main__":
-    tabs.launch()  # Remove share=True if tunnel errors
+    demo.launch()
+
+# demo.launch(share=True, server_name="", server_port=7860)
