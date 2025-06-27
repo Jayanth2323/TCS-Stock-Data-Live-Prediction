@@ -4,168 +4,187 @@ import matplotlib.pyplot as plt
 import joblib
 import io
 from PIL import Image
+from sklearn.metrics import mean_squared_error, r2_score
+import tensorflow as tf
 import os
 
-# Load model
-MODEL_PATH = "model/TCS_Stock_Predictor.pkl"
+# --- Paths ---
+LINEAR_MODEL_PATH = "model/TCS_Stock_Predictor.pkl"
+LSTM_MODEL_PATH = "model/tcs_lstm_model.keras"
+SCALER_PATH = "model/tcs_lstm_scaler.pkl"
 DATA_PATH = "data/TCS_stock_history.csv"
 
+print("Model Exists?", os.path.exists(LSTM_MODEL_PATH))
+print("Scaler Exists?", os.path.exists(SCALER_PATH))
+# --- Load Models ---
 try:
-    model = joblib.load(MODEL_PATH)
-    print(f"✅ Model loaded successfully from {MODEL_PATH}")
-except Exception as e:
-    model = None
-    print(f"❌ Model load error: {e}")
+    lin_model = joblib.load(LINEAR_MODEL_PATH)
+    print(f"✅ Linear model loaded from {LINEAR_MODEL_PATH}")
+except Exception:
+    lin_model = None
+    print("❌ Failed to load linear model")
+
+try:
+    lstm_model = tf.keras.models.load_model(LSTM_MODEL_PATH)
+    scaler = joblib.load(SCALER_PATH)
+    print("✅ LSTM model & scaler loaded")
+except Exception:
+    lstm_model = None
+    scaler = None
+    print("❌ Failed to load LSTM model/scaler")
 
 
-# Prediction function
-def predict(
-    open_price, high_price, low_price, volume, prev_close, day_of_week, month
-):
-    if model is None:
-        return "Model not loaded. Please check server logs."
-    try:
-        data = pd.DataFrame(
-            [
-                {
-                    "Open": float(open_price),
-                    "High": float(high_price),
-                    "Low": float(low_price),
-                    "Volume": float(volume),
-                    "Prev_Close": float(prev_close),
-                    "Day_of_Week": int(day_of_week),
-                    "Month": int(month),
-                }
-            ]
-        )
-        prediction = model.predict(data)
-        return f"📈 Predicted Close Price: ₹{prediction[0]:.2f}"
-    except Exception as e:
-        return f"❌ Prediction Error: {str(e)}"
+# --- Data Loader ---
+def load_df():
+    df = pd.read_csv(DATA_PATH, encoding="utf-8", on_bad_lines="skip")
+    df["Date"] = pd.to_datetime(df["Date"], errors='coerce')
+    return df.dropna(subset=["Date"]).sort_values("Date")
 
 
-# ---------- Plot 1: Trend + Volume ----------
-def show_visual_insights():
-    if not os.path.exists(DATA_PATH):
-        return Image.new("RGB", (600, 400), color="red")
-
-    df = pd.read_csv(DATA_PATH)
-    df["Date"] = pd.to_datetime(df["Date"])
-    df = df.sort_values(by="Date")
-    df["MA50"] = df["Close"].rolling(window=50).mean()
-    df["MA200"] = df["Close"].rolling(window=200).mean()
-
-    _, axs = plt.subplots(2, 1, figsize=(12, 10))
-
-    axs[0].plot(df["Date"], df["Close"], label="Close Price", color="blue")
-    axs[0].plot(df["Date"], df["MA50"], label="MA 50", color="orange")
-    axs[0].plot(df["Date"], df["MA200"], label="MA 200", color="green")
-    axs[0].set_title("TCS Stock Price & Moving Averages")
-    axs[0].legend()
-    _extracted_from_show_visual_insights_18(axs, 0, "Price")
-    axs[1].plot(df["Date"], df["Volume"], label="Volume", color="purple")
-    axs[1].set_title("TCS Trading Volume Over Time")
-    _extracted_from_show_visual_insights_18(axs, 1, "Volume")
-    plt.tight_layout()
+# --- Helpers ---
+def fig_to_pil(fig):
     buf = io.BytesIO()
-    plt.savefig(buf, format="png")
+    fig.savefig(buf, format="png")
     buf.seek(0)
-    image = Image.open(buf)
-    plt.close()
-    return image
+    img = Image.open(buf)
+    plt.close(fig)
+    return img
 
 
-# TODO Rename this here and in `show_visual_insights`
-def _extracted_from_show_visual_insights_18(axs, arg1, arg2):
-    axs[arg1].set_xlabel("Date")
-    axs[arg1].set_ylabel(arg2)
-    axs[arg1].legend()
+# --- Plot Functions ---
+def plot_trend_volume():
+    df = load_df()
+    df["MA50"] = df["Close"].rolling(50).mean()
+    df["MA200"] = df["Close"].rolling(200).mean()
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+    ax1.plot(df["Date"], df["Close"], label="Close")
+    ax1.plot(df["Date"], df["MA50"], label="MA50")
+    ax1.plot(df["Date"], df["MA200"], label="MA200")
+    ax1.set_title("Price & MAs"), ax1.legend()
+    ax2.plot(df["Date"], df["Volume"], label="Volume")
+    ax2.set_title("Volume")
+    return fig_to_pil(fig)
 
 
-# ---------- Plot 2: Actual vs Predicted ----------
-def show_prediction_plot():
-    if not os.path.exists(DATA_PATH) or model is None:
-        return Image.new("RGB", (600, 400), color="gray")
+def plot_div_splits():
+    df = load_df()
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.plot(df["Date"], df.get("Dividends", 0), label="Dividends")
+    ax.plot(df["Date"], df.get("Stock Splits", 0), label="Splits")
+    ax.set_title("Dividends & Splits"), ax.legend()
+    return fig_to_pil(fig)
 
-    df = pd.read_csv(DATA_PATH)
-    df["Date"] = pd.to_datetime(df["Date"])
-    df = df.sort_values("Date")
 
-    # Add missing features
+def plot_ma_crossover():
+    df = load_df()
+    df["ShortMA"] = df["Close"].rolling(20).mean()
+    df["LongMA"] = df["Close"].rolling(50).mean()
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.plot(df["Date"], df["Close"], label="Close")
+    ax.plot(df["Date"], df["ShortMA"], label="20‑day MA")
+    ax.plot(df["Date"], df["LongMA"], label="50‑day MA")
+    ax.set_title("MA Crossover"), ax.legend()
+    return fig_to_pil(fig)
+
+
+def plot_daily_change():
+    df = load_df()
+    df["DailyChange"] = df["Close"].pct_change() * 100
+    fig, ax = plt.subplots(figsize=(6, 4))
+    ax.hist(df["DailyChange"].dropna(), bins=50)
+    ax.set_title("Daily % Change")
+    return fig_to_pil(fig)
+
+
+def plot_actual_predicted():
+    df = load_df()
     df["Prev_Close"] = df["Close"].shift(1)
     df["Day_of_Week"] = df["Date"].dt.dayofweek
     df["Month"] = df["Date"].dt.month
-
-    features = [
+    df.dropna(inplace=True)
+    feats = [
         "Open", "High", "Low", "Volume", "Prev_Close", "Day_of_Week", "Month"]
-    df = df.dropna(subset=features + ["Close"])
-
-    X = df[features]
+    X = df[feats]
     y_true = df["Close"]
-    y_pred = model.predict(X)
-
-    _, ax = plt.subplots(figsize=(12, 6))
-    ax.plot(df["Date"], y_true, label="Actual Close", color="blue")
-    ax.plot(
-        df["Date"], y_pred, label="Predicted Close", color="red", alpha=0.7)
-    ax.set_title("📊 Actual vs Predicted Close Prices")
-    ax.set_xlabel("Date")
-    ax.set_ylabel("Price")
+    y_pred = lin_model.predict(X) if lin_model else [0] * len(X)
+    mse, r2 = mean_squared_error(y_true, y_pred), r2_score(y_true, y_pred)
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.plot(df["Date"], y_true, label="Actual")
+    ax.plot(df["Date"], y_pred, label="Pred", alpha=0.7)
+    ax.set_title(f"Actual vs Predicted 🧮 (MSE={mse:.2f}, R²={r2:.2f})")
     ax.legend()
-    plt.xticks(rotation=30)
-
-    plt.tight_layout()
-    buf = io.BytesIO()
-    plt.savefig(buf, format="png")
-    buf.seek(0)
-    image = Image.open(buf)
-    plt.close()
-    return image
+    return fig_to_pil(fig)
 
 
-# Gradio App UI
-with gr.Blocks() as demo:
-    with gr.Tab("📊 Visual Insights"):
-        gr.Markdown("### 📈 TCS Stock Trends with Moving Averages and Volume")
-        vis_output = gr.Image(label="Generated Insights")
-        vis_btn = gr.Button("📊 Generate Visuals")
-        vis_btn.click(fn=show_visual_insights, inputs=[], outputs=vis_output)
+def forecast_lstm():
+    if lstm_model is None or scaler is None:
+        return Image.new("RGB", (400, 200), "gray")
+    df = load_df()
+    data = scaler.transform(df[["Close"]])
+    seq = data[-60:].reshape(1, 60, 1)
+    pred = lstm_model.predict(seq)[0, 0]
+    fig, ax = plt.subplots(figsize=(4, 2))
+    ax.bar(["Next"], [pred])
+    ax.set_ylabel("Price")
+    ax.set_title("LSTM 1-Step Forecast")
+    return fig_to_pil(fig)
 
-    with gr.Tab("🤖 Predict Close Price"):
-        with gr.Row():
-            open_price = gr.Number(label="Open Price (₹)")
-            high_price = gr.Number(label="High Price (₹)")
-            low_price = gr.Number(label="Low Price (₹)")
-            volume = gr.Number(label="Volume")
-            prev_close = gr.Number(label="Previous Day Close Price (₹)")
-            day_of_week = gr.Number(label="Day of Week (0=Monday)")
-            month = gr.Number(label="Month (1-12)")
-        output = gr.Textbox(label="Predicted Close Price")
-        btn = gr.Button("🔮 Predict")
-        btn.click(
-            predict,
-            inputs=[
-                open_price,
-                high_price,
-                low_price,
-                volume,
-                prev_close,
-                day_of_week,
-                month,
-            ],
-            outputs=output,
-        )
 
-    # with gr.Tab("📊 Visual Insights"):
-    #     gr.Markdown("### 📈 Stock Trend + Moving Averages + Volume")
-    #     vis_output = gr.Image(label="Stock Chart")
-    #     vis_btn = gr.Button("📊 Generate Visuals")
-    #     vis_btn.click(fn=show_visual_insights, inputs=[], outputs=vis_output)
+# --- Prediction UI ---
+def predict(open_p, high_p, low_p, volume, prev_close, day_wk, month):
+    if lin_model is None:
+        return "Model not loaded."
+    X = pd.DataFrame(
+        [
+            {
+                "Open": open_p,
+                "High": high_p,
+                "Low": low_p,
+                "Volume": volume,
+                "Prev_Close": prev_close,
+                "Day_of_Week": day_wk,
+                "Month": month,
+            }
+        ]
+    )
+    pred = lin_model.predict(X)[0]
+    return f"📈 ₹{pred:.2f}"
 
-    with gr.Tab("📉 Prediction Accuracy"):
-        gr.Markdown("### 🤝 Actual vs Predicted Close Price")
-        output = gr.Image(label="Prediction Plot")
-        pred_btn = gr.Button("📉 Compare Predictions")
-        pred_btn.click(fn=show_prediction_plot, inputs=[], outputs=output)
+
+# --- Gradio UI ---
+tabs = gr.Tabs()
+with tabs:
+    with gr.TabItem("Trend & Volume"):
+        gr.Image(plot_trend_volume)
+    with gr.TabItem("Dividends & Splits"):
+        gr.Image(plot_div_splits)
+    with gr.TabItem("MA Crossover"):
+        gr.Image(plot_ma_crossover)
+    with gr.TabItem("Daily Change"):
+        gr.Image(plot_daily_change)
+    with gr.TabItem("Linear Model Accuracy"):
+        gr.Image(plot_actual_predicted)
+    with gr.TabItem("LSTM Forecast"):
+        gr.Image(forecast_lstm)
+    with gr.Blocks() as demo:
+        with gr.TabItem("Predict Price"):
+            with gr.Column():
+                with gr.Row():
+                    open_price = gr.Number(label="Open Price (₹)")
+                    high_price = gr.Number(label="High Price (₹)")
+                    low_price = gr.Number(label="Low Price (₹)")
+                    volume = gr.Number(label="Volume")
+                    prev_close = gr.Number(label="Previous Close (₹)")
+                    day_of_week = gr.Number(label="Day of Week")
+                    month = gr.Number(label="Month")
+                output = gr.Textbox(label="Predicted Close Price")
+                btn = gr.Button("🔮 Predict")
+                btn.click(predict, inputs=[
+                    open_price,
+                    high_price,
+                    low_price, volume, prev_close, day_of_week, month
+                    ], outputs=output)
+
+# Launch App
 if __name__ == "__main__":
-    demo.launch()
+    tabs.launch()  # Remove share=True if tunnel errors

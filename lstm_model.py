@@ -10,7 +10,7 @@ import joblib
 
 # Constants
 DATA_PATH = "data/TCS_stock_history.csv"
-SAVE_PATH = "model/tcs_lstm_model.h5"
+SAVE_PATH = "model/tcs_lstm_model.keras"
 SCALER_PATH = "model/tcs_lstm_scaler.pkl"
 SEQUENCE_LENGTH = 60
 
