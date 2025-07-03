@@ -10,48 +10,47 @@ pinned: true
 license: mit
 python_version: "3.10"
 ---
+## 📈 TCS Stock Data – Live Price Forecasting with ML & DL
 
-# TCS Stock Price Prediction (Gradio App)
+An end-to-end interactive stock prediction dashboard for Tata Consultancy Services (TCS) using Linear Regression, LSTM, SHAP explainability, and interactive Plotly analytics.
 
-🚀 A machine learning-powered Gradio application that predicts TCS stock price trends based on historical data and previous closing values.
+## 🚀 Features
 
-This project aims to provide real-time, intuitive insights into stock behavior using Linear Regression, making it accessible through a clean and simple web interface.
+- 🔮 Predict TCS stock closing price using Linear Regression
+- 📉 LSTM-based price forecasting (last 60-day window)
+- 📊 Interactive Plotly charts (MAs, Dividends, Volume, Daily Change, and more)
+- 📎 SHAP Explainability for prediction transparency
+- 🧾 Export detailed PDF reports (Matplotlib fallback)
+- 🌐 Gradio Web UI for intuitive interaction
+- ✅ Fully containerized with Hugging Face Spaces deployment-ready setup
 
----
+## 🧠 ML Models
 
-## 📂 Project Structure
+- **Linear Regression**: Trained on historical Open, High, Low, Volume, Prev_Close, Day_of_Week, Month
+- **LSTM Model**: Trained on scaled 60-day close prices using TensorFlow
 
-TCS_Stock_Predictor/
-│
-├── app.py # Gradio frontend + model inference
+## 📦 Project Structure
+
+├── app.py # Gradio app with SHAP, PDF, Plotly
 ├── model/
-│ └── model_train.py # Model training script (generates .pkl)
+│ ├── TCS_Stock_Predictor.pkl
+│ ├── tcs_lstm_model.keras
+│ └── tcs_lstm_scaler.pkl
 ├── data/
-│ └── TCS_stock_history.csv # Source dataset
-├── requirements.txt # Python dependencies
-└── README.md # Project overview and metadata
+│ └── TCS_stock_history.csv
+├── predictions/
+│ └── tcs_stock_analysis.pdf
+└── requirements.txt
 
----
+## 📸 Preview
 
-## 🔧 Features
+![Demo](assets/demo.gif)
 
-- ⏳ Uses historical stock data with a "Previous Close" lag feature
-- 📈 Linear Regression model for price prediction
-- 🌐 Gradio-powered interactive web UI
-- 💾 Model saved and loaded via `joblib`
-- 📊 Clean visualization-ready backend
-
----
-
-## ✅ How to Run Locally
+## 📥 Run Locally
 
 ```bash
-# 1. Create virtual environment (optional but recommended)
-python -m venv venv
-source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-
-# 2. Install dependencies
+git clone https://github.com/Jayanth2323/TCS-Stock-Data-Live-Prediction
+cd TCS-Stock-Data-Live-Prediction
 pip install -r requirements.txt
-
-# 3. Run the Gradio app
 python app.py
+---
