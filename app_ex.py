@@ -1,4 +1,4 @@
-# app.py (Updated: Plots rendered as Plotly for Analytics + PDF Export Fix)
+# app.py (Final with SHAP + Plotly + PDF Export)
 import gradio as gr
 import pandas as pd
 import plotly.graph_objs as go
@@ -9,7 +9,6 @@ from sklearn.metrics import mean_squared_error, r2_score
 import tensorflow as tf
 from PIL import Image
 
-# --- Force CPU ---
 os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 # --- Paths ---
@@ -21,24 +20,15 @@ PDF_PATH = "predictions/tcs_stock_analysis.pdf"
 os.makedirs("predictions", exist_ok=True)
 
 # --- Load Models ---
-lin_model = (
-    joblib.load(
-        LINEAR_MODEL_PATH) if os.path.exists(LINEAR_MODEL_PATH) else None
-)
-lstm_model = (
-    tf.keras.models.load_model(LSTM_MODEL_PATH)
-    if os.path.exists(LSTM_MODEL_PATH)
-    else None
-)
+lin_model = joblib.load(LINEAR_MODEL_PATH) if os.path.exists(LINEAR_MODEL_PATH) else None
+lstm_model = tf.keras.models.load_model(LSTM_MODEL_PATH) if os.path.exists(LSTM_MODEL_PATH) else None
 scaler = joblib.load(SCALER_PATH) if os.path.exists(SCALER_PATH) else None
-
 
 # --- Load Data ---
 def load_df():
     df = pd.read_csv(DATA_PATH)
     df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
     return df.dropna(subset=["Date"]).sort_values("Date")
-
 
 # --- SHAP Plot ---
 def get_shap_plot(input_data):
@@ -47,8 +37,7 @@ def get_shap_plot(input_data):
     df["Day_of_Week"] = df["Date"].dt.dayofweek
     df["Month"] = df["Date"].dt.month
     df.dropna(inplace=True)
-    X_base = df[[
-        "Open", "High", "Low", "Volume", "Prev_Close", "Day_of_Week", "Month"]]
+    X_base = df[["Open", "High", "Low", "Volume", "Prev_Close", "Day_of_Week", "Month"]]
     explainer = shap.Explainer(lin_model, X_base)
     shap_values = explainer(pd.DataFrame([input_data]))
     shap_fig = plt.figure()
@@ -59,7 +48,6 @@ def get_shap_plot(input_data):
     img = Image.open(buf)
     plt.close(shap_fig)
     return img
-
 
 # --- Plotly Visuals ---
 def plot_combined():
@@ -73,56 +61,25 @@ def plot_combined():
     df["Day_of_Week"] = df["Date"].dt.dayofweek
     df["Month"] = df["Date"].dt.month
     df.dropna(inplace=True)
-
-    feats = [
-        "Open", "High", "Low", "Volume", "Prev_Close", "Day_of_Week", "Month"]
+    feats = ["Open", "High", "Low", "Volume", "Prev_Close", "Day_of_Week", "Month"]
     y_true = df["Close"]
     y_pred = lin_model.predict(df[feats]) if lin_model else [0] * len(df)
     mse, r2 = mean_squared_error(y_true, y_pred), r2_score(y_true, y_pred)
-
     lstm_pred = 0
     if lstm_model and scaler:
         seq = scaler.transform(df[["Close"]])[-60:].reshape(1, 60, 1)
         lstm_pred = lstm_model.predict(seq)[0, 0]
-
     return [
-        go.Figure(
-            [
-                go.Scatter(x=df["Date"], y=df[c], name=c)
-                for c in ["Close", "MA50", "MA200"]
-            ]
-        ).update_layout(title="Close Price & MAs"),
-        go.Figure(
-            [go.Scatter(x=df["Date"], y=df["Volume"], name="Volume")]
-        ).update_layout(title="Trading Volume"),
-        go.Figure(
-            [
-                go.Scatter(x=df["Date"], y=df.get(c, 0), name=c)
-                for c in ["Dividends", "Stock Splits"]
-            ]
-        ).update_layout(title="Dividends & Splits"),
-        go.Figure(
-            [
-                go.Scatter(x=df["Date"], y=df[c], name=c)
-                for c in ["Close", "ShortMA", "LongMA"]
-            ]
-        ).update_layout(title="MA Crossover"),
-        go.Figure(
-            go.Histogram(x=df["DailyChange"].dropna(), nbinsx=50)
-        ).update_layout(title="Daily % Change"),
-        go.Figure(
-            [
-                go.Scatter(x=df["Date"], y=y_true, name="Actual"),
-                go.Scatter(x=df["Date"], y=y_pred, name="Predicted"),
-            ]
-        ).update_layout(title=f"Linear Model (MSE={mse:.2f}, R²={r2:.2f})"),
-        go.Figure(
-            go.Bar(x=["LSTM Forecast"], y=[lstm_pred], marker_color="orange")
-        ).update_layout(title="LSTM Forecast"),
+        go.Figure([go.Scatter(x=df["Date"], y=df[c], name=c) for c in ["Close", "MA50", "MA200"]]).update_layout(title="Close Price & MAs"),
+        go.Figure([go.Scatter(x=df["Date"], y=df["Volume"], name="Volume")]).update_layout(title="Trading Volume"),
+        go.Figure([go.Scatter(x=df["Date"], y=df.get(c, 0), name=c) for c in ["Dividends", "Stock Splits"]]).update_layout(title="Dividends & Splits"),
+        go.Figure([go.Scatter(x=df["Date"], y=df[c], name=c) for c in ["Close", "ShortMA", "LongMA"]]).update_layout(title="MA Crossover"),
+        go.Figure(go.Histogram(x=df["DailyChange"].dropna(), nbinsx=50)).update_layout(title="Daily % Change"),
+        go.Figure([go.Scatter(x=df["Date"], y=y_true, name="Actual"), go.Scatter(x=df["Date"], y=y_pred, name="Predicted")]).update_layout(title=f"Linear Model (MSE={mse:.2f}, R²={r2:.2f})"),
+        go.Figure(go.Bar(x=["LSTM Forecast"], y=[lstm_pred], marker_color="orange")).update_layout(title="LSTM Forecast"),
     ]
 
-
-# --- Export PDF (Matplotlib Fallback) ---
+# --- Export PDF ---
 def export_combined_pdf():
     df = load_df()
     df["MA50"] = df["Close"].rolling(50).mean()
@@ -134,8 +91,7 @@ def export_combined_pdf():
     df["Day_of_Week"] = df["Date"].dt.dayofweek
     df["Month"] = df["Date"].dt.month
     df.dropna(inplace=True)
-    X = df[[
-        "Open", "High", "Low", "Volume", "Prev_Close", "Day_of_Week", "Month"]]
+    X = df[["Open", "High", "Low", "Volume", "Prev_Close", "Day_of_Week", "Month"]]
     y = df["Close"]
     y_pred = lin_model.predict(X)
     mse, r2 = mean_squared_error(y, y_pred), r2_score(y, y_pred)
@@ -153,41 +109,27 @@ def export_combined_pdf():
     axs[2, 0].plot(df["Date"], y)
     axs[2, 0].plot(df["Date"], y_pred)
     axs[2, 0].set_title(f"Linear Model (MSE={mse:.2f}, R²={r2:.2f})")
-    lstm_val = (
-        lstm_model.predict(
-            scaler.transform(df[["Close"]])[-60:].reshape(1, 60, 1))[
-            0, 0
-        ]
-        if lstm_model and scaler
-        else 0
-    )
+    lstm_val = lstm_model.predict(scaler.transform(df[["Close"]])[-60:].reshape(1, 60, 1))[0, 0] if lstm_model and scaler else 0
     axs[2, 1].bar(["Forecast"], [lstm_val])
     axs[2, 1].set_title("LSTM Forecast")
     plt.tight_layout()
-    fig.savefig(PDF_PATH, format="pdf")
+    buf = io.BytesIO()
+    fig.savefig(buf, format="pdf")
+    buf.seek(0)
+    with open(PDF_PATH, "wb") as f:
+        f.write(buf.read())
     return PDF_PATH
 
-
-# --- Predict Tab ---
-def predict(open_p, high_p, low_p, volume, prev_close, day_wk, month):
-    if not lin_model:
-        return "Model not loaded."
-    X = pd.DataFrame(
-        [
-            {
-                "Open": open_p,
-                "High": high_p,
-                "Low": low_p,
-                "Volume": volume,
-                "Prev_Close": prev_close,
-                "Day_of_Week": day_wk,
-                "Month": month,
-            }
-        ]
-    )
+# --- Prediction Logic ---
+def run_prediction(open_p, high_p, low_p, volume, prev_close, day_wk, month):
+    input_data = {
+        "Open": open_p, "High": high_p, "Low": low_p, "Volume": volume,
+        "Prev_Close": prev_close, "Day_of_Week": day_wk, "Month": month
+    }
+    X = pd.DataFrame([input_data])
     pred = lin_model.predict(X)[0] if lin_model else 0
-    return f"📈 ₹{pred:.2f}"
-
+    shap_vis = get_shap_plot(input_data)
+    return f"📈 ₹{pred:.2f}", shap_vis
 
 # --- Gradio UI ---
 with gr.Blocks() as demo:
@@ -195,28 +137,26 @@ with gr.Blocks() as demo:
         with gr.TabItem("📊 All-in-One Analysis"):
             for f in plot_combined():
                 gr.Plot(value=f)
-            btn = gr.Button("⬇️ Download PDF Report")
+            pdf_btn = gr.Button("⬇️ Download PDF Report")
             pdf_out = gr.File()
-            btn.click(fn=export_combined_pdf, outputs=pdf_out)
+            pdf_btn.click(fn=export_combined_pdf, outputs=pdf_out)
 
         with gr.TabItem("🔮 Predict Close Price"):
-            open_p, high_p, low_p = (
-                gr.Number(label="Open ₹"),
-                gr.Number(label="High ₹"),
-                gr.Number(label="Low ₹"),
-            )
-            volume, prev_close = gr.Number(label="Volume"), gr.Number(
-                label="Previous Close ₹"
-            )
-            day_wk, month = gr.Number(label="Day of Week (0=Mon)"), gr.Number(
-                label="Month"
-            )
-            output = gr.Textbox(label="Predicted Close Price")
-            gr.Button("🔮 Predict").click(
-                predict,
-                inputs=[
-                    open_p, high_p, low_p, volume, prev_close, day_wk, month],
-                outputs=output,
+            open_p = gr.Number(label="Open ₹")
+            high_p = gr.Number(label="High ₹")
+            low_p = gr.Number(label="Low ₹")
+            volume = gr.Number(label="Volume")
+            prev_close = gr.Number(label="Previous Close ₹")
+            day_wk = gr.Number(label="Day of Week (0=Mon)")
+            month = gr.Number(label="Month")
+            predict_btn = gr.Button("🔮 Predict")
+            with gr.Row():
+                output = gr.Textbox(label="Predicted Close Price")
+                shap_img = gr.Image(label="SHAP Explanation")
+            predict_btn.click(
+                run_prediction,
+                inputs=[open_p, high_p, low_p, volume, prev_close, day_wk, month],
+                outputs=[output, shap_img]
             )
 
 if __name__ == "__main__":

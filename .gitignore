@@ -7,3 +7,4 @@ __pycache__/
 .DS_Store
 .gradio
 venv/
+.app_ex.py
