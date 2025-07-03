@@ -1,10 +1,12 @@
-# app.py (Updated: Plots rendered as Plotly for Analytics + PDF Export Fix)
+# app.py (✅ FINAL: SHAP Fixed + Plotly + PDF + Gradio UI)
 import gradio as gr
 import pandas as pd
 import plotly.graph_objs as go
 import matplotlib.pyplot as plt
 import shap
-import io, joblib, os
+import io
+import joblib
+import os
 from sklearn.metrics import mean_squared_error, r2_score
 import tensorflow as tf
 from PIL import Image
@@ -42,23 +44,38 @@ def load_df():
 
 # --- SHAP Plot ---
 def get_shap_plot(input_data):
+    if lin_model is None:
+        raise ValueError("Linear model not loaded.")
+
     df = load_df()
     df["Prev_Close"] = df["Close"].shift(1)
     df["Day_of_Week"] = df["Date"].dt.dayofweek
     df["Month"] = df["Date"].dt.month
     df.dropna(inplace=True)
-    X_base = df[[
-        "Open", "High", "Low", "Volume", "Prev_Close", "Day_of_Week", "Month"]]
-    explainer = shap.Explainer(lin_model, X_base)
-    shap_values = explainer(pd.DataFrame([input_data]))
-    shap_fig = plt.figure()
+
+    feature_cols = [
+        "Open",
+        "High",
+        "Low",
+        "Volume",
+        "Prev_Close",
+        "Day_of_Week",
+        "Month",
+    ]
+    X_base = df[feature_cols]
+    input_df = pd.DataFrame([input_data], columns=feature_cols)
+
+    explainer = shap.Explainer(
+        lin_model.predict, X_base, feature_names=feature_cols)
+    shap_values = explainer(input_df)
+
+    fig = plt.figure()
     shap.plots.waterfall(shap_values[0], show=False)
     buf = io.BytesIO()
-    shap_fig.savefig(buf, format="png", bbox_inches="tight")
+    fig.savefig(buf, format="png", bbox_inches="tight")
     buf.seek(0)
-    img = Image.open(buf)
-    plt.close(shap_fig)
-    return img
+    plt.close(fig)
+    return Image.open(buf)
 
 
 # --- Plotly Visuals ---
@@ -108,8 +125,10 @@ def plot_combined():
             ]
         ).update_layout(title="MA Crossover"),
         go.Figure(
-            go.Histogram(x=df["DailyChange"].dropna(), nbinsx=50)
-        ).update_layout(title="Daily % Change"),
+            go.Histogram(
+                x=df["DailyChange"].dropna(), nbinsx=50)).update_layout(
+            title="Daily % Change"
+        ),
         go.Figure(
             [
                 go.Scatter(x=df["Date"], y=y_true, name="Actual"),
@@ -122,7 +141,7 @@ def plot_combined():
     ]
 
 
-# --- Export PDF (Matplotlib Fallback) ---
+# --- Export PDF ---
 def export_combined_pdf():
     df = load_df()
     df["MA50"] = df["Close"].rolling(50).mean()
@@ -139,6 +158,7 @@ def export_combined_pdf():
     y = df["Close"]
     y_pred = lin_model.predict(X)
     mse, r2 = mean_squared_error(y, y_pred), r2_score(y, y_pred)
+
     fig, axs = plt.subplots(3, 2, figsize=(16, 12))
     axs[0, 0].plot(df["Date"], df["Close"])
     axs[0, 0].plot(df["Date"], df["MA50"])
@@ -155,9 +175,7 @@ def export_combined_pdf():
     axs[2, 0].set_title(f"Linear Model (MSE={mse:.2f}, R²={r2:.2f})")
     lstm_val = (
         lstm_model.predict(
-            scaler.transform(df[["Close"]])[-60:].reshape(1, 60, 1))[
-            0, 0
-        ]
+            scaler.transform(df[["Close"]])[-60:].reshape(1, 60, 1))[0, 0]
         if lstm_model and scaler
         else 0
     )
@@ -168,25 +186,23 @@ def export_combined_pdf():
     return PDF_PATH
 
 
-# --- Predict Tab ---
+# --- Prediction ---
 def predict(open_p, high_p, low_p, volume, prev_close, day_wk, month):
     if not lin_model:
-        return "Model not loaded."
-    X = pd.DataFrame(
-        [
-            {
-                "Open": open_p,
-                "High": high_p,
-                "Low": low_p,
-                "Volume": volume,
-                "Prev_Close": prev_close,
-                "Day_of_Week": day_wk,
-                "Month": month,
-            }
-        ]
-    )
+        return "Model not loaded.", None
+    input_dict = {
+        "Open": open_p,
+        "High": high_p,
+        "Low": low_p,
+        "Volume": volume,
+        "Prev_Close": prev_close,
+        "Day_of_Week": day_wk,
+        "Month": month,
+    }
+    X = pd.DataFrame([input_dict])
     pred = lin_model.predict(X)[0]
-    return f"📈 ₹{pred:.2f}"
+    shap_img = get_shap_plot(input_dict)
+    return f"📈 ₹{pred:.2f}", shap_img
 
 
 # --- Gradio UI ---
@@ -200,23 +216,20 @@ with gr.Blocks() as demo:
             btn.click(fn=export_combined_pdf, outputs=pdf_out)
 
         with gr.TabItem("🔮 Predict Close Price"):
-            open_p, high_p, low_p = (
-                gr.Number(label="Open ₹"),
-                gr.Number(label="High ₹"),
-                gr.Number(label="Low ₹"),
-            )
-            volume, prev_close = gr.Number(label="Volume"), gr.Number(
-                label="Previous Close ₹"
-            )
-            day_wk, month = gr.Number(label="Day of Week (0=Mon)"), gr.Number(
-                label="Month"
-            )
+            open_p = gr.Number(label="Open ₹")
+            high_p = gr.Number(label="High ₹")
+            low_p = gr.Number(label="Low ₹")
+            volume = gr.Number(label="Volume")
+            prev_close = gr.Number(label="Previous Close ₹")
+            day_wk = gr.Number(label="Day of Week (0=Mon)")
+            month = gr.Number(label="Month")
             output = gr.Textbox(label="Predicted Close Price")
+            shap_img = gr.Image(label="SHAP Explainability")
             gr.Button("🔮 Predict").click(
                 predict,
                 inputs=[
                     open_p, high_p, low_p, volume, prev_close, day_wk, month],
-                outputs=output,
+                outputs=[output, shap_img],
             )
 
 if __name__ == "__main__":
