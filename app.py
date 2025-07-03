@@ -185,7 +185,7 @@ def predict(open_p, high_p, low_p, volume, prev_close, day_wk, month):
             }
         ]
     )
-    pred = lin_model.predict(X)[0] if lin_model else 0
+    pred = lin_model.predict(X)[0]
     return f"📈 ₹{pred:.2f}"
 
 
