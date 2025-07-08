@@ -20,6 +20,15 @@ LSTM_MODEL_PATH = "model/tcs_lstm_model.keras"
 SCALER_PATH = "model/tcs_lstm_scaler.pkl"
 DATA_PATH = "data/TCS_stock_history.csv"
 PDF_PATH = "predictions/tcs_stock_analysis.pdf"
+RF_MODEL_PATH = "model/rf_model.pkl"
+XGB_MODEL_PATH = "model/xgb_model.pkl"
+
+rf_model = joblib.load(
+    RF_MODEL_PATH) if os.path.exists(RF_MODEL_PATH) else None
+xgb_model = joblib.load(
+    XGB_MODEL_PATH) if os.path.exists(XGB_MODEL_PATH) else None
+os.makedirs("model", exist_ok=True)
+os.makedirs("data", exist_ok=True)
 os.makedirs("predictions", exist_ok=True)
 
 # --- Load Models ---
@@ -97,6 +106,15 @@ def plot_combined():
     y_pred = lin_model.predict(df[feats]) if lin_model else [0] * len(df)
     mse, r2 = mean_squared_error(y_true, y_pred), r2_score(y_true, y_pred)
 
+    # Random Forest
+    y_rf = rf_model.predict(df[feats]) if rf_model else [0] * len(df)
+    mse_rf, r2_rf = mean_squared_error(y_true, y_rf), r2_score(y_true, y_rf)
+
+    # XGBoost
+    y_xgb = xgb_model.predict(df[feats]) if xgb_model else [0] * len(df)
+    mse_xgb, r2_xgb = mean_squared_error(
+        y_true, y_xgb), r2_score(y_true, y_xgb)
+
     lstm_pred = 0
     if lstm_model and scaler:
         seq = scaler.transform(df[["Close"]])[-60:].reshape(1, 60, 1)
@@ -136,6 +154,19 @@ def plot_combined():
             ]
         ).update_layout(title=f"Linear Model (MSE={mse:.2f}, R²={r2:.2f})"),
         go.Figure(
+            [
+                go.Scatter(x=df["Date"], y=y_true, name="Actual"),
+                go.Scatter(x=df["Date"], y=y_rf, name="Random Forest")
+            ]
+        ).update_layout(
+            title=f"Random Forest (MSE={mse_rf:.2f}, R²={r2_rf:.2f})"),
+        go.Figure(
+            [
+                go.Scatter(x=df["Date"], y=y_true, name="Actual"),
+                go.Scatter(x=df["Date"], y=y_xgb, name="XGBoost")
+            ]
+        ).update_layout(title=f"XGBoost (MSE={mse_xgb:.2f}, R²={r2_xgb:.2f})"),
+        go.Figure(
             go.Bar(x=["LSTM Forecast"], y=[lstm_pred], marker_color="orange")
         ).update_layout(title="LSTM Forecast"),
     ]
@@ -157,16 +188,15 @@ def export_combined_pdf():
         "Open", "High", "Low", "Volume", "Prev_Close", "Day_of_Week", "Month"]]
     y = df["Close"]
     y_pred = lin_model.predict(X)
+    y_rf = rf_model.predict(X) if rf_model else [0] * len(X)
+    y_xgb = xgb_model.predict(X) if xgb_model else [0] * len(X)
     mse, r2 = mean_squared_error(y, y_pred), r2_score(y, y_pred)
+    # Removed unused mse_rf, r2_rf, mse_xbg, r2_xbg calculation
 
     fig, axs = plt.subplots(3, 2, figsize=(16, 12))
-    axs[0, 0].plot(df["Date"], df["Close"])
-    axs[0, 0].plot(df["Date"], df["MA50"])
     axs[0, 0].set_title("Close & MA")
     axs[0, 1].plot(df["Date"], df["Volume"])
     axs[0, 1].set_title("Volume")
-    axs[1, 0].plot(df["Date"], df.get("Dividends", 0))
-    axs[1, 0].plot(df["Date"], df.get("Stock Splits", 0))
     axs[1, 0].set_title("Dividends & Splits")
     axs[1, 1].hist(df["DailyChange"].dropna(), bins=50)
     axs[1, 1].set_title("Daily % Change")
@@ -179,7 +209,26 @@ def export_combined_pdf():
         if lstm_model and scaler
         else 0
     )
-    axs[2, 1].bar(["Forecast"], [lstm_val])
+
+    axs[0, 0].plot(df["Date"], df["Close"], label="Actual")
+    axs[0, 0].plot(df["Date"], df["MA50"], label="MA50")
+    axs[0, 0].legend()
+
+    axs[1, 0].plot(df["Date"], df.get("Dividends", 0), label="Dividends")
+    axs[1, 0].plot(df["Date"], df.get("Stock Splits", 0), label="Splits")
+    axs[1, 0].legend()
+
+    axs[1, 1].hist(df["DailyChange"].dropna(), bins=50)
+    axs[1, 1].set_title("Daily % Change")
+
+    axs[2, 0].plot(df["Date"], y, label="Actual")
+    axs[2, 0].plot(df["Date"], y_pred, label="Linear")
+    axs[2, 0].plot(df["Date"], y_rf, label="RF")
+    axs[2, 0].plot(df["Date"], y_xgb, label="XGB")
+    axs[2, 0].set_title("Model Predictions")
+    axs[2, 0].legend()
+
+    axs[2, 1].bar(["LSTM Forecast"], [lstm_val], color="orange")
     axs[2, 1].set_title("LSTM Forecast")
     plt.tight_layout()
     fig.savefig(PDF_PATH, format="pdf")
