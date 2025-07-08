@@ -167,7 +167,11 @@ def plot_combined():
             ]
         ).update_layout(title=f"XGBoost (MSE={mse_xgb:.2f}, R²={r2_xgb:.2f})"),
         go.Figure(
-            go.Bar(x=["LSTM Forecast"], y=[lstm_pred], marker_color="orange")
+            go.Bar(
+                x=["LSTM Forecast"],
+                y=[lstm_pred],
+                marker=dict(color="orange")
+            )
         ).update_layout(title="LSTM Forecast"),
     ]
 
