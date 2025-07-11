@@ -293,6 +293,19 @@ with gr.Blocks() as demo:
             pdf_out = gr.File()
             btn.click(fn=export_combined_pdf, outputs=pdf_out)
 
+        with gr.TabItem("📈 ARIMA Forecast"):
+            arima_plot = gr.Plot()
+            with gr.Row():
+                gr.Button("🔮 Forecast 30 Days").click(
+                    fn=lambda: forecast_arima(30), outputs=arima_plot
+                )
+                gr.Button("🔮 Forecast 90 Days").click(
+                    fn=lambda: forecast_arima(90), outputs=arima_plot
+                )
+                gr.Button("🔮 Forecast 180 Days").click(
+                    fn=lambda: forecast_arima(180), outputs=arima_plot
+                )
+
         with gr.TabItem("🔮 Predict Close Price"):
             open_p = gr.Number(label="Open ₹")
             high_p = gr.Number(label="High ₹")
@@ -308,17 +321,6 @@ with gr.Blocks() as demo:
                 inputs=[
                     open_p, high_p, low_p, volume, prev_close, day_wk, month],
                 outputs=[output, shap_img],
-            )
-        with gr.TabItem("📈 ARIMA Forecast"):
-            arima_plot = gr.Plot()
-            gr.Button("🔮 Forecast 30 Days").click(
-                fn=lambda: forecast_arima(30), outputs=arima_plot
-            )
-            gr.Button("🔮 Forecast 90 Days").click(
-                fn=lambda: forecast_arima(90), outputs=arima_plot
-            )
-            gr.Button("🔮 Forecast 180 Days").click(
-                fn=lambda: forecast_arima(180), outputs=arima_plot
             )
 
 
