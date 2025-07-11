@@ -316,7 +316,7 @@ footer {
 
 main {
     flex: 1 !important;
-    padding-block-end: 0 important;
+    padding-block-end: 0 !important;
     display: flex;
     flex-direction: column;
 }
