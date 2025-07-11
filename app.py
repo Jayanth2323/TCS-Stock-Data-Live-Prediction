@@ -319,8 +319,8 @@ main {
 """
 
 
-# --- Gradio UI ---
-with gr.Blocks(css=custom_css) as demo:
+# --- Gradio UI --- css=custom_css
+with gr.Blocks() as demo:
     with gr.Tabs():
         with gr.TabItem("📊 All-in-One Analysis"):
             for f in plot_combined():
