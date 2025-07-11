@@ -69,7 +69,7 @@ pip install -r requirements.txt
 
 ## 🗂️ Project Structure
 
-``
+```bash
 TCS_Stock_Gradio_App/
 ├── app.py                       # Main Gradio app logic
 ├── lstm_model.py                # LSTM model training
@@ -90,7 +90,7 @@ TCS_Stock_Gradio_App/
 ├── requirements.txt
 ├── README.md
 └── .github/workflows/huggingface-deploy.yml
-``
+```
 
 ---
 
