@@ -129,6 +129,27 @@ Generates a downloadable PDF report with:
 
 ---
 
+## 📥 Run via Git
+
+```bash
+git clone https://github.com/Jayanth2323/TCS-Stock-Data-Live-Prediction
+cd TCS-Stock-Data-Live-Prediction
+pip install -r requirements.txt
+python app.py
+```
+
+---
+
+---
+
+## 📸 Preview
+
+> Add a GIF or screenshot demo here  
+> Example:  
+> `![Demo](assets/demo.gif)`
+
+---
+
 ## 📤 Deployment Suggestion
 
 Deploy on:
