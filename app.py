@@ -302,21 +302,40 @@ body {
     background-color: #121212;
     overflow-x: hidden;
 }
+
 footer {
     display: none !important;
 }
+
 .gradio-container {
-    min-height: 100vh;
+    display: flex !important;
+    flex-direction: column !important;
+    min-block-size: 100vh !important;
+    padding-block-end: 0 !important;
+}
+
+main {
+    flex: 1 !important;
+    padding-block-end: 0 !important;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
-    padding-bottom: 0 !important;
 }
-main {
-    flex: 1;
-    padding-bottom: 0 !important;
+
+main > div {
+    flex-grow: 0 !important;
+    flex-shrink: 1 !important;
+    max-block-size: 85vh !important;
+    overflow-y: auto !important;
+}
+
+/* Prevent individual plot containers from taking up too much space */
+.gradio-plot {
+    max-block-size: 500px !important;
+    block-size: auto !important;
+    margin-block-end: 1rem !important;
 }
 """
+
 
 # --- Gradio UI ---
 with gr.Blocks(css=custom_css) as demo:
