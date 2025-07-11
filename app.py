@@ -295,6 +295,12 @@ def predict(open_p, high_p, low_p, volume, prev_close, day_wk, month):
 
 
 # --- Custom CSS to Fix Bottom Padding ---
+# main > div {
+#     flex-grow: 0 !important;
+#     flex-shrink: 1 !important;
+#     max-block-size: 85vh !important;
+#     overflow-y: auto !important;
+# }
 custom_css = """
 body {
     margin: 0 !important;
@@ -321,12 +327,7 @@ main {
     flex-direction: column;
 }
 
-main > div {
-    flex-grow: 0 !important;
-    flex-shrink: 1 !important;
-    max-block-size: 85vh !important;
-    overflow-y: auto !important;
-}
+
 
 /* Prevent individual plot containers from taking up too much space */
 .gradio-plot {
