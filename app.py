@@ -8,6 +8,8 @@ import io
 import joblib
 import os
 from sklearn.metrics import mean_squared_error, r2_score
+from pmdarima import auto_arima
+import datetime
 import tensorflow as tf
 from PIL import Image
 
@@ -176,6 +178,29 @@ def plot_combined():
     ]
 
 
+def forecast_arima(n_days=30):
+    df = load_df()
+    df = df.set_index("Date")
+    df = df.asfreq("D").fillna(method="ffill")
+
+    model = auto_arima(df["Close"], seasonal=False, suppress_warnings=True)
+    future = model.predict(n_periods=n_days)
+
+    last_date = df.index[-1]
+    future_dates = [
+        last_date + datetime.timedelta(days=i+1) for i in range(n_days)]
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df.index, y=df["Close"], name="Historical"))
+    fig.add_trace(
+        go.Scatter(
+            x=future_dates, y=future, name="ARIMA Forecast",
+            line=dict(color="green"))
+    )
+    fig.update_layout(title=f"ARIMA Forecast - Next {n_days} Days")
+    return fig
+
+
 # --- Export PDF ---
 def export_combined_pdf():
     df = load_df()
@@ -284,6 +309,18 @@ with gr.Blocks() as demo:
                     open_p, high_p, low_p, volume, prev_close, day_wk, month],
                 outputs=[output, shap_img],
             )
+        with gr.TabItem("📈 ARIMA Forecast"):
+            arima_plot = gr.Plot()
+            gr.Button("🔮 Forecast 30 Days").click(
+                fn=lambda: forecast_arima(30), outputs=arima_plot
+            )
+            # gr.Button("🔮 Forecast 90 Days").click(
+            #     fn=lambda: forecast_arima(90), outputs=arima_plot
+            # )
+            # gr.Button("🔮 Forecast 180 Days").click(
+            #     fn=lambda: forecast_arima(180), outputs=arima_plot
+            # )
+
 
 if __name__ == "__main__":
     demo.launch()
