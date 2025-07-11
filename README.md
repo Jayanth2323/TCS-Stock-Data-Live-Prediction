@@ -144,9 +144,9 @@ python app.py
 
 ## 📸 Preview
 
-> Add a GIF or screenshot demo here  
-> Example:  
-> `![Demo](assets/demo.gif)`
+> Add a GIF or screenshot demo here
+> Example:
+> ![Demo](assets/demo.gif)
 
 ---
 
