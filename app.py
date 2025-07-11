@@ -43,7 +43,18 @@ lstm_model = (
     if os.path.exists(LSTM_MODEL_PATH)
     else None
 )
-scaler = joblib.load(SCALER_PATH) if os.path.exists(SCALER_PATH) else None
+scaler = (
+    joblib.load(
+        SCALER_PATH) if os.path.exists(SCALER_PATH) else None
+)
+rf_model = (
+    joblib.load(
+        RF_MODEL_PATH) if os.path.exists(RF_MODEL_PATH) else None
+)
+xgb_model = (
+    joblib.load(
+        XGB_MODEL_PATH) if os.path.exists(XGB_MODEL_PATH) else None
+)
 
 
 # --- Load Data ---
@@ -283,8 +294,33 @@ def predict(open_p, high_p, low_p, volume, prev_close, day_wk, month):
     return f"📈 ₹{pred:.2f}", shap_img
 
 
+# --- Custom CSS to Fix Bottom Padding ---
+custom_css = """
+body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: #121212;
+    overflow-x: hidden;
+}
+footer {
+    display: none !important;
+}
+.gradio-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-bottom: 0 !important;
+}
+main {
+    flex: 1;
+    padding-bottom: 0 !important;
+}
+"""
+
+
 # --- Gradio UI ---
-with gr.Blocks() as demo:
+with gr.Blocks(css=custom_css) as demo:
     with gr.Tabs():
         with gr.TabItem("📊 All-in-One Analysis"):
             for f in plot_combined():
@@ -322,7 +358,6 @@ with gr.Blocks() as demo:
                     open_p, high_p, low_p, volume, prev_close, day_wk, month],
                 outputs=[output, shap_img],
             )
-
 
 if __name__ == "__main__":
     demo.launch()
