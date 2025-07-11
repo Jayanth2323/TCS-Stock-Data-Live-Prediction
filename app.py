@@ -314,12 +314,12 @@ with gr.Blocks() as demo:
             gr.Button("🔮 Forecast 30 Days").click(
                 fn=lambda: forecast_arima(30), outputs=arima_plot
             )
-            # gr.Button("🔮 Forecast 90 Days").click(
-            #     fn=lambda: forecast_arima(90), outputs=arima_plot
-            # )
-            # gr.Button("🔮 Forecast 180 Days").click(
-            #     fn=lambda: forecast_arima(180), outputs=arima_plot
-            # )
+            gr.Button("🔮 Forecast 90 Days").click(
+                fn=lambda: forecast_arima(90), outputs=arima_plot
+            )
+            gr.Button("🔮 Forecast 180 Days").click(
+                fn=lambda: forecast_arima(180), outputs=arima_plot
+            )
 
 
 if __name__ == "__main__":
