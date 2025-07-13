@@ -294,8 +294,49 @@ def predict(open_p, high_p, low_p, volume, prev_close, day_wk, month):
     return f"📈 ₹{pred:.2f}", shap_img
 
 
+# --- Custom CSS to Fix Bottom Padding ---
+
+custom_css = """
+/* -- Reset & Base Layout -- */
+/* -- Base Reset -- */
+body, html {
+    margin: 0;
+    padding: 0;
+    block-size: 100%;
+    overflow: hidden;
+}
+
+/* -- Full height container -- */
+.gradio-container {
+    block-size: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* -- Main content scrolls only when needed -- */
+main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem; /* Reduced padding */
+    box-sizing: border-box;
+}
+
+/* -- Optional: smooth scroll + hide scrollbar */
+main::-webkit-scrollbar {
+    inline-size: 0px;
+    background: transparent; /* Hide scrollbar for WebKit */
+}
+main {
+    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;  /* IE/Edge */
+}
+
+
+"""
+
+
 # --- Gradio UI ---
-with gr.Blocks() as demo:
+with gr.Blocks(css=custom_css) as demo:
     with gr.Tabs():
         with gr.TabItem("📊 All-in-One Analysis"):
             with gr.Column():
