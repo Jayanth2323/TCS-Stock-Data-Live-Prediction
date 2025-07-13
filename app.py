@@ -297,50 +297,47 @@ def predict(open_p, high_p, low_p, volume, prev_close, day_wk, month):
 # --- Custom CSS to Fix Bottom Padding ---
 
 custom_css = """
-/* -- Reset & Base Layout -- */
-/* -- Base Reset -- */
-body, html {
+/* Reset and full height */
+html, body {
     margin: 0;
     padding: 0;
-    block-size: 100%;
-    overflow: hidden;
+    block-size: auto !important;
+    overflow-x: hidden;
+    background-color: #121212;
+    scroll-behavior: smooth;
 }
 
-/* -- Full height container -- */
+/* Allow full page scroll */
 .gradio-container {
-    block-size: 100vh;
-    display: flex;
-    flex-direction: column;
+    padding: 0 !important;
+    margin: 0 !important;
+    inline-size: 100% !important;
 }
 
-/* -- Main content scrolls only when needed -- */
-main {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1.5rem; /* Reduced padding */
-    box-sizing: border-box;
+/* Plot spacing & style */
+.gr-plot, .gradio-plot, .plot-container {
+    inline-size: 100% !important;
+    max-block-size: 500px;
+    margin-block-end: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 0 10px #00000022;
 }
 
-/* -- Optional: smooth scroll + hide scrollbar */
-main::-webkit-scrollbar {
-    inline-size: 0px;
-    background: transparent; /* Hide scrollbar for WebKit */
-}
-main {
-    scrollbar-width: none;  /* Firefox */
-    -ms-overflow-style: none;  /* IE/Edge */
+/* Consistent component spacing */
+.gr-number, .gr-textbox, .gr-image, .gr-button {
+    margin-block-end: 1rem !important;
+    inline-size: 100%;
 }
 
-/* Fade effect on tab content change */
+/* Tab fade-in */
 .tabitem > div, .gr-tabitem > div {
     animation: fadein 0.5s ease-in-out;
 }
 
 @keyframes fadein {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
-
 
 """
 

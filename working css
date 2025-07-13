@@ -1,0 +1,97 @@
+custom_css = """
+/* -- Reset & Base Layout -- */
+/* -- Base Reset -- */
+body, html {
+    margin: 0;
+    padding: 0;
+    block-size: 100%;
+    overflow: hidden;
+}
+
+/* -- Full height container -- */
+.gradio-container {
+    block-size: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* -- Main content scrolls only when needed -- */
+main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem; /* Reduced padding */
+    box-sizing: border-box;
+}
+
+/* -- Optional: smooth scroll + hide scrollbar */
+main::-webkit-scrollbar {
+    inline-size: 0px;
+    background: transparent; /* Hide scrollbar for WebKit */
+}
+main {
+    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;  /* IE/Edge */
+}
+
+/* Fade effect on tab content change */
+.tabitem > div, .gr-tabitem > div {
+    animation: fadein 0.5s ease-in-out;
+}
+
+@keyframes fadein {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+# /* Scroll to top button */
+# #scrollTopBtn {
+#     position: fixed;
+#     inset-block-end: 2rem;
+#     inset-inline-end: 2rem;
+#     background-color: #00bcd4;
+#     color: white;
+#     border: none;
+#     padding: 0.75rem 1rem;
+#     border-radius: 50px;
+#     font-weight: bold;
+#     cursor: pointer;
+#     box-shadow: 0 0 10px #00000033;
+#     display: none;
+#     z-index: 9999;
+# }
+
+# #scrollTopBtn.show {
+#     display: block;
+# }
+
+# #scrollTopBtn:hover {
+#     background-color: #0097a7;
+# }
+
+"""
+
+
+# demo.load(
+    #     None,
+    #     js="""
+    #     function () {
+    #         const btn = document.createElement('button');
+    #         btn.id = 'scrollTopBtn';
+    #         btn.innerText = '⬆️ Top';
+    #         document.body.appendChild(btn);
+
+    #         window.addEventListener('scroll', () => {
+    #             if (window.scrollY > 150) {
+    #                 btn.classList.add('show');
+    #             } else {
+    #                 btn.classList.remove('show');
+    #             }
+    #         });
+
+    #         btn.addEventListener('click', () => {
+    #             window.scrollTo({
+    #             inset-block-start: 0, behavior: 'smooth' });
+    #         });
+    #     }
+    #     """
+    # )
