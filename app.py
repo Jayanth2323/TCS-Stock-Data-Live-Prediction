@@ -294,91 +294,124 @@ def predict(open_p, high_p, low_p, volume, prev_close, day_wk, month):
     return f"📈 ₹{pred:.2f}", shap_img
 
 
-# --- Custom CSS to Fix Bottom Padding ---
+# # --- Custom CSS to Fix Bottom Padding ---
 
-custom_css = """
-body {
-    margin: 0 !important;
-    padding: 0 !important;
-    background-color: #121212;
-    overflow-x: hidden;
-}
+# custom_css = """
+# /* -- Reset & Base Layout -- */
+# body, html {
+#     margin: 0 !important;
+#     padding: 0 !important;
+#     background-color: #121212 !important;
+#     overflow-x: hidden !important;
+#     box-sizing: border-box !important;
+# }
 
-footer {
-    display: none !important;
-}
+# /* Hide footer */
+# footer, .svelte-1ipelgc {
+#     display: none !important;
+# }
 
-.gradio-container {
-    display: flex !important;
-    flex-direction: column !important;
-    min-block-size: 100vh !important;
-    padding-block-end: 0 !important;
-}
+# /* Remove sidebar gap */
+# .gradio-container, .main {
+#     padding: 0 !important;
+#     margin: 0 !important;
+#     inline-size: 100% !important;
+#     box-sizing: border-box !important;
+# }
 
-main > div {
-    flex-grow: 0 !important;
-    flex-shrink: 1 !important;
-    max-block-size: 85vh !important;
-    overflow-y: auto !important;
-}
+# /* Tabs + content spacing fix */
+# .tabitem, .gr-tabitem, .gr-block, .gr-column, .gr-row {
+#     padding: 0 !important;
+#     margin: 0 !important;
+#     inline-size: 100% !important;
+#     box-sizing: border-box !important;
+# }
 
-main {
-    flex: 1 !important;
-    padding-block-end: 0 !important;
-    display: flex;
-    flex-direction: column;
-}
+# /* Plot uniform style */
+# .gradio-plot, .gr-plot, .plot-container {
+#     max-block-size: 500px !important;
+#     inline-size: 100% !important;
+#     margin: 0 auto 1rem auto !important;
+#     border-radius: 8px;
+#     box-shadow: 0 0 10px #00000033;
+# }
 
+# /* Input component spacing */
+# .gr-number, .gr-textbox, .gr-image, .gr-button {
+#     margin-block-end: 1rem !important;
+#     inline-size: 100% !important;
+# }
 
+# /* Make all tabs scroll consistently */
+# main {
+#     flex: 1 !important;
+#     display: flex !important;
+#     flex-direction: column !important;
+#     overflow-y: auto !important;
+#     padding-block-end: 0 !important;
+# }
 
-/* Prevent individual plot containers from taking up too much space */
-.gradio-plot {
-    max-block-size: 500px !important;
-    block-size: auto !important;
-    margin-block-end: 1rem !important;
-}
-"""
+# main > div {
+#     flex-grow: 0 !important;
+#     max-block-size: 85vh !important;
+#     overflow-y: auto !important;
+# }
+
+# .sidebar {
+#     display: none !important;
+# }
+# /* Hide sidebar */
+# .sidebar-container {
+#     display: none !important;
+# }
+# """
 
 
 # --- Gradio UI ---
-with gr.Blocks(css=custom_css) as demo:
+with gr.Blocks() as demo:
     with gr.Tabs():
         with gr.TabItem("📊 All-in-One Analysis"):
-            for f in plot_combined():
-                gr.Plot(value=f)
-            btn = gr.Button("⬇️ Download PDF Report")
-            pdf_out = gr.File()
-            btn.click(fn=export_combined_pdf, outputs=pdf_out)
+            with gr.Column():
+                for i, f in enumerate(plot_combined()):
+                    gr.Plot(value=f, elem_id=f"analysis_plot_{i}")
+                btn = gr.Button("⬇️ Download PDF Report")
+                pdf_out = gr.File()
+                btn.click(fn=export_combined_pdf, outputs=pdf_out)
 
         with gr.TabItem("📈 ARIMA Forecast"):
-            arima_plot = gr.Plot()
-            with gr.Row():
-                gr.Button("🔮 Forecast 30 Days").click(
-                    fn=lambda: forecast_arima(30), outputs=arima_plot
-                )
-                gr.Button("🔮 Forecast 90 Days").click(
-                    fn=lambda: forecast_arima(90), outputs=arima_plot
-                )
-                gr.Button("🔮 Forecast 180 Days").click(
-                    fn=lambda: forecast_arima(180), outputs=arima_plot
-                )
+            with gr.Column():
+                arima_plot = gr.Plot()
+                with gr.Row():
+                    gr.Button("🔮 Forecast 30 Days").click(
+                        fn=lambda: forecast_arima(30), outputs=arima_plot
+                    )
+                    gr.Button("🔮 Forecast 90 Days").click(
+                        fn=lambda: forecast_arima(90), outputs=arima_plot
+                    )
+                    gr.Button("🔮 Forecast 180 Days").click(
+                        fn=lambda: forecast_arima(180), outputs=arima_plot
+                    )
 
         with gr.TabItem("🔮 Predict Close Price"):
-            open_p = gr.Number(label="Open ₹")
-            high_p = gr.Number(label="High ₹")
-            low_p = gr.Number(label="Low ₹")
-            volume = gr.Number(label="Volume")
-            prev_close = gr.Number(label="Previous Close ₹")
-            day_wk = gr.Number(label="Day of Week (0=Mon)")
-            month = gr.Number(label="Month")
-            output = gr.Textbox(label="Predicted Close Price")
-            shap_img = gr.Image(label="SHAP Explainability")
-            gr.Button("🔮 Predict").click(
-                predict,
-                inputs=[
-                    open_p, high_p, low_p, volume, prev_close, day_wk, month],
-                outputs=[output, shap_img],
-            )
+            with gr.Column():
+                open_p = gr.Number(label="Open ₹")
+                high_p = gr.Number(label="High ₹")
+                low_p = gr.Number(label="Low ₹")
+                volume = gr.Number(label="Volume")
+                prev_close = gr.Number(label="Previous Close ₹")
+                day_wk = gr.Number(label="Day of Week (0=Mon)")
+                month = gr.Number(label="Month")
+                output = gr.Textbox(label="Predicted Close Price")
+                shap_img = gr.Image(label="SHAP Explainability")
+                gr.Button("🔮 Predict").click(
+                    predict,
+                    inputs=[
+                        open_p, high_p, low_p, volume, prev_close, day_wk,
+                        month],
+                    outputs=[output, shap_img],
+                )
 
 if __name__ == "__main__":
-    demo.launch(server_port=7860)
+    demo.launch()
+# To run the app, execute: python app.py
+# Access it at: http://localhost:7860
