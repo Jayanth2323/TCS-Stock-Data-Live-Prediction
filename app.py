@@ -331,6 +331,42 @@ main {
     -ms-overflow-style: none;  /* IE/Edge */
 }
 
+# #scrollTopBtn {
+#     position: fixed;
+#     inset-block-end: 2rem;
+#     inset-inline-end: 2rem;
+#     z-index: 9999;
+#     background-color: #00bcd4;
+#     color: white;
+#     border: none;
+#     padding: 0.75rem 1rem;
+#     border-radius: 100px;
+#     font-weight: bold;
+#     cursor: pointer;
+#     box-shadow: 0 0 10px #00000033;
+#     display: none; /* initially hidden */
+#     transition: opacity 0.3s ease-in-out;
+# }
+
+# #scrollTopBtn.show {
+#     display: block;
+#     opacity: 1;
+# }
+
+# #scrollTopBtn:hover {
+#     background-color: #0097a7;
+# }
+
+/* Fade effect on tab content change */
+.tabitem > div, .gr-tabitem > div {
+    animation: fadein 0.5s ease-in-out;
+}
+
+@keyframes fadein {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 
 """
 
@@ -378,6 +414,32 @@ with gr.Blocks(css=custom_css) as demo:
                         month],
                     outputs=[output, shap_img],
                 )
+
+    # demo.load(
+    #     lambda: None,
+    #     js="""
+    #     function () {
+    #         const btn = document.createElement('button');
+    #         btn.id = 'scrollTopBtn';
+    #         btn.innerText = '⬆️ Top';
+    #         document.body.appendChild(btn);
+    #         document.querySelector("main").scrollTo({
+    #             inset-block-start: 0, behavior: 'smooth' });
+    #         window.addEventListener('scroll', () => {
+    #             if (window.scrollY > 200) {
+    #                 btn.classList.add('show');
+    #             } else {
+    #                 btn.classList.remove('show');
+    #             }
+    #         });
+
+    #         btn.addEventListener('click', () => {
+    #             window.scrollTo({ inset-block-start: 0, behavior: 'smooth' });
+    #         });
+    #     }
+    #     """
+    # )
+
 
 if __name__ == "__main__":
     demo.launch()
