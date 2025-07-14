@@ -394,103 +394,45 @@ def predict(open_p, high_p, low_p, volume, prev_close, day_wk, month):
 
 # """
 
-# custom_css = """
-# /* Reset full page */
-# html, body {
-#     margin: 0;
-#     padding: 0;
-#     block-size: 100%;
-#     inline-size: 100%;
-#     overflow-x: hidden;
-#     background-color: #121212;
-#     scroll-behavior: smooth;
-# }
-
-# /* Make entire viewport scrollable */
-# .gradio-container {
-#     block-size: auto;
-#     min-block-size: 100vh;
-#     display: block;
-#     overflow-y: auto !important;
-#     padding: 0 !important;
-#     margin: 0 !important;
-# }
-
-# /* Main area scrolls naturally */
-# main {
-#     padding: 2rem;
-#     block-size: auto;
-#     overflow-y: visible !important;
-#     flex: 1;
-# }
-
-# /* Tab content consistent */
-# .gr-tabitem > div, .tabitem > div {
-#     animation: fadein 0.4s ease-in-out;
-#     block-size: auto;
-#     inline-size: 100%;
-#     display: block;
-# }
-
-# /* Plots */
-# .gr-plot, .gradio-plot, .plot-container {
-#     inline-size: 100% !important;
-#     max-block-size: 500px;
-#     margin-block-end: 1.5rem;
-#     border-radius: 8px;
-#     box-shadow: 0 0 10px #00000022;
-# }
-
-# /* Inputs layout */
-# .gr-number, .gr-textbox, .gr-image, .gr-button, .gr-file {
-#     margin-block-end: 1rem !important;
-#     inline-size: 100%;
-# }
-
-# /* Fade animation */
-# @keyframes fadein {
-#     from { opacity: 0; transform: translateY(10px); }
-#     to { opacity: 1; transform: translateY(0); }
-# }
-
-# /* Hide any unnecessary footers */
-# footer, .svelte-1ipelgc {
-#     display: none !important;
-# }
-# """
-
-# ___________________________________________________________
-
 custom_css = """
-/* Full reset and allow scroll */
+/* Reset full page */
 html, body {
     margin: 0;
     padding: 0;
     block-size: 100%;
+    inline-size: 100%;
     overflow-x: hidden;
     background-color: #121212;
     scroll-behavior: smooth;
 }
 
-/* Allow full page scrolling */
+/* Make entire viewport scrollable */
 .gradio-container {
-    block-size: auto !important;
+    block-size: auto;
     min-block-size: 100vh;
+    display: block;
+    overflow-y: auto !important;
     padding: 0 !important;
     margin: 0 !important;
-    overflow: visible !important;
 }
 
-/* Main should allow scrolling */
+/* Main area scrolls naturally */
 main {
-    block-size: auto !important;
-    min-block-size: 100vh;
-    overflow-y: auto !important;
     padding: 2rem;
-    box-sizing: border-box;
+    block-size: auto;
+    overflow-y: visible !important;
+    flex: 1;
 }
 
-/* Plot styling */
+/* Tab content consistent */
+.gr-tabitem > div, .tabitem > div {
+    animation: fadein 0.4s ease-in-out;
+    block-size: auto;
+    inline-size: 100%;
+    display: block;
+}
+
+/* Plots */
 .gr-plot, .gradio-plot, .plot-container {
     inline-size: 100% !important;
     max-block-size: 500px;
@@ -499,22 +441,80 @@ main {
     box-shadow: 0 0 10px #00000022;
 }
 
-/* Consistent spacing */
-.gr-number, .gr-textbox, .gr-image, .gr-button {
+/* Inputs layout */
+.gr-number, .gr-textbox, .gr-image, .gr-button, .gr-file {
     margin-block-end: 1rem !important;
     inline-size: 100%;
 }
 
-/* Tab fade-in animation */
-.tabitem > div, .gr-tabitem > div {
-    animation: fadein 0.4s ease-in-out;
-}
-
+/* Fade animation */
 @keyframes fadein {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* Hide any unnecessary footers */
+footer, .svelte-1ipelgc {
+    display: none !important;
+}
 """
+
+# ___________________________________________________________
+
+# custom_css = """
+# /* Full reset and allow scroll */
+# html, body {
+#     margin: 0;
+#     padding: 0;
+#     block-size: 100%;
+#     overflow-x: hidden;
+#     background-color: #121212;
+#     scroll-behavior: smooth;
+# }
+
+# /* Allow full page scrolling */
+# .gradio-container {
+#     block-size: auto !important;
+#     min-block-size: 100vh;
+#     padding: 0 !important;
+#     margin: 0 !important;
+#     overflow: visible !important;
+# }
+
+# /* Main should allow scrolling */
+# main {
+#     block-size: auto !important;
+#     min-block-size: 100vh;
+#     overflow-y: auto !important;
+#     padding: 2rem;
+#     box-sizing: border-box;
+# }
+
+# /* Plot styling */
+# .gr-plot, .gradio-plot, .plot-container {
+#     inline-size: 100% !important;
+#     max-block-size: 500px;
+#     margin-block-end: 1.5rem;
+#     border-radius: 8px;
+#     box-shadow: 0 0 10px #00000022;
+# }
+
+# /* Consistent spacing */
+# .gr-number, .gr-textbox, .gr-image, .gr-button {
+#     margin-block-end: 1rem !important;
+#     inline-size: 100%;
+# }
+
+# /* Tab fade-in animation */
+# .tabitem > div, .gr-tabitem > div {
+#     animation: fadein 0.4s ease-in-out;
+# }
+
+# @keyframes fadein {
+#     from { opacity: 0; transform: translateY(10px); }
+#     to { opacity: 1; transform: translateY(0); }
+# }
+# """
 
 
 # --- Gradio UI ---
