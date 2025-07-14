@@ -296,25 +296,78 @@ def predict(open_p, high_p, low_p, volume, prev_close, day_wk, month):
 
 # --- Custom CSS to Fix Bottom Padding ---
 
+# custom_css = """
+# /* Reset and full height */
+# html, body {
+#     margin: 0;
+#     padding: 0;
+#     block-size: auto !important;
+#     overflow-x: hidden;
+#     background-color: #121212;
+#     scroll-behavior: smooth;
+# }
+
+# /* Allow full page scroll */
+# .gradio-container {
+#     padding: 0 !important;
+#     margin: 0 !important;
+#     inline-size: 100% !important;
+# }
+
+# /* Plot spacing & style */
+# .gr-plot, .gradio-plot, .plot-container {
+#     inline-size: 100% !important;
+#     max-block-size: 500px;
+#     margin-block-end: 1.5rem;
+#     border-radius: 8px;
+#     box-shadow: 0 0 10px #00000022;
+# }
+
+# /* Consistent component spacing */
+# .gr-number, .gr-textbox, .gr-image, .gr-button {
+#     margin-block-end: 1rem !important;
+#     inline-size: 100%;
+# }
+
+# /* Tab fade-in */
+# .tabitem > div, .gr-tabitem > div {
+#     animation: fadein 0.5s ease-in-out;
+# }
+
+# @keyframes fadein {
+#     from { opacity: 0; transform: translateY(10px); }
+#     to { opacity: 1; transform: translateY(0); }
+# }
+
+# """
 custom_css = """
-/* Reset and full height */
+/* Reset and full block-size */
 html, body {
     margin: 0;
     padding: 0;
-    block-size: auto !important;
-    overflow-x: hidden;
+    block-size: 100%;
     background-color: #121212;
     scroll-behavior: smooth;
+    overflow-x: hidden;
 }
 
-/* Allow full page scroll */
+/* Make the container scroll the full page */
 .gradio-container {
+    min-block-size: 100vh;
+    display: flex;
+    flex-direction: column;
     padding: 0 !important;
     margin: 0 !important;
-    inline-size: 100% !important;
 }
 
-/* Plot spacing & style */
+/* Ensure all tab content contributes to full block-size */
+main {
+    flex: 1;
+    overflow-y: visible; /* Let the full page scroll, not just tab content */
+    padding: 2rem;
+}
+
+/* Plot styling */
 .gr-plot, .gradio-plot, .plot-container {
     inline-size: 100% !important;
     max-block-size: 500px;
@@ -323,13 +376,13 @@ html, body {
     box-shadow: 0 0 10px #00000022;
 }
 
-/* Consistent component spacing */
+/* Component spacing */
 .gr-number, .gr-textbox, .gr-image, .gr-button {
     margin-block-end: 1rem !important;
     inline-size: 100%;
 }
 
-/* Tab fade-in */
+/* Fade-in animation for tab content */
 .tabitem > div, .gr-tabitem > div {
     animation: fadein 0.5s ease-in-out;
 }
@@ -340,7 +393,6 @@ html, body {
 }
 
 """
-
 
 # --- Gradio UI ---
 with gr.Blocks(css=custom_css) as demo:
