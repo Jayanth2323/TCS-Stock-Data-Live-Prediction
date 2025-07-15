@@ -55,6 +55,30 @@ An AI-powered Gradio web application for analyzing and forecasting TCS stock pri
 
 ---
 
+Here’s a refined and professional version of your `README.md` section:
+
+---
+
+## 🚀 Live Demo
+
+Experience the live, interactive deployment on Hugging Face Spaces:
+
+🔗 [**TCS Stock Price Live Prediction App**](https://huggingface.co/spaces/JaKe7389/TCS_Stock_Live_Prediction)
+
+Leverage powerful models — **Linear Regression**, **LSTM**, and **ARIMA** — to forecast TCS stock prices. Explore **SHAP-based model explainability**, analyze market trends, and export insights in **PDF/CSV** formats. The app is built with a custom **Gradio UI**, optimized for performance, interactivity, and professional presentation.
+
+---
+
+---
+
+> ⚠️ **Note:** The **ARIMA Forecast** model may take **60–90 seconds** to generate predictions due to statistical processing complexity. Please allow sufficient time for results to appear, as illustrated below:
+
+<p>
+<img src="https://huggingface.co/spaces/JaKe7389/TCS_Stock_Live_Prediction/resolve/main/assets/arima-slowload-demo.png" alt="ARIMA Slow Loading" width="80%">
+</p>
+
+---
+
 ## 📦 Installation & Dependencies
 
 Make sure to install dependencies using the pinned versions:
