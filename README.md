@@ -74,7 +74,7 @@ Leverage powerful models — **Linear Regression**, **LSTM**, and **ARIMA** — 
 > ⚠️ **Note:** The **ARIMA Forecast** model may take **60–90 seconds** to generate predictions due to statistical processing complexity. Please allow sufficient time for results to appear, as illustrated below:
 
 <p>
-<img src="https://huggingface.co/spaces/JaKe7389/TCS_Stock_Live_Prediction/resolve/main/assets/arima-slowload-demo.png" alt="ARIMA Slow Loading" width="80%">
+<img src="./assets/arima-slowload-demo.png" alt="ARIMA Slow Loading" width="80%">
 </p>
 
 ---
