@@ -55,10 +55,6 @@ An AI-powered Gradio web application for analyzing and forecasting TCS stock pri
 
 ---
 
-Here’s a refined and professional version of your `README.md` section:
-
----
-
 ## 🚀 Live Demo
 
 Experience the live, interactive deployment on Hugging Face Spaces:
