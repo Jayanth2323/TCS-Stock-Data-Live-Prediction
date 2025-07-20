@@ -65,8 +65,6 @@ Leverage powerful models — **Linear Regression**, **LSTM**, and **ARIMA** — 
 
 ---
 
----
-
 > ⚠️ **Note:** The **ARIMA Forecast** model may take **60–90 seconds** to generate predictions due to statistical processing complexity. Please allow sufficient time for results to appear, as illustrated below:
 
 <p>
